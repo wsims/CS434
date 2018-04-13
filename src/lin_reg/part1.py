@@ -105,9 +105,60 @@ def main():
 
     # Subsection 4
     print "Results from subsection 4:"
+    x, y = get_housing_data('housing_train.txt', 2)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=2 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 2)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+
+    x, y = get_housing_data('housing_train.txt', 4)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=4 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 4)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+
+    x, y = get_housing_data('housing_train.txt', 6)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=6 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 6)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+    x, y = get_housing_data('housing_train.txt', 8)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=8 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 8)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+
     x, y = get_housing_data('housing_train.txt', 10)
     w = np.linalg.inv(x.T*x)*x.T*y
-    print "Vector weights"
+    print "D=10 Vector weights"
     print w
     print '\n'
     x_test, y_test = get_housing_data('housing_test.txt', 10)
@@ -115,5 +166,5 @@ def main():
     ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
     print("Training data ASE: %f" % ASE_train)
     print("Testing data ASE: %f" % ASE_test)
-
+    
 main()
