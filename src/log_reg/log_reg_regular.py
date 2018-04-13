@@ -11,7 +11,7 @@ def get_xy(value_list):
     x = np.matrix(value_list[:length-1]).T
     return x, y
 
-def batch_train(w, learning_rate=6, file='usps-4-9-train.csv', lamb=1):
+def batch_train(w, learning_rate=0.05, file='usps-4-9-train.csv', lamb=1):
     gradient = np.matrix([0]*257).T
     f = open(file, 'r')
 
@@ -21,8 +21,8 @@ def batch_train(w, learning_rate=6, file='usps-4-9-train.csv', lamb=1):
         y_hat = logistic.cdf(w.T*x).item(0)
         gradient = gradient + (y_hat - y)*x
 
-    gradient = gradient + lamb*w
-    w = w - learning_rate*gradient
+    # gradient = gradient + lamb*w
+    w = w - learning_rate*(gradient + lamb*w)
     return w, gradient
 
 def predict(w, x, prob_threshold=0.5):
@@ -53,7 +53,7 @@ def train_and_test(lamb=1):
     w = np.matrix([0]*257).T
     while True:
         w, gradient = batch_train(w, lamb)
-        if np.linalg.norm(gradient) < 5000:
+        if np.linalg.norm(gradient) < 50000:
             break
 
     print("Lambda test %.8f" % lamb)
@@ -71,3 +71,8 @@ if __name__ == '__main__':
     train_and_test(lamb=10.0**-4)
     train_and_test(lamb=10.0**-3)
     train_and_test(lamb=10.0**-2)
+    train_and_test(lamb=10.0**-1)
+    #train_and_test(lamb=10.0**0)
+    train_and_test(lamb=10.0**1)
+    train_and_test(lamb=10.0**2)
+    train_and_test(lamb=10.0**3)
