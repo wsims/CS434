@@ -21,13 +21,15 @@ def batch_train(w, learning_rate=0.05, file='usps-4-9-train.csv', lamb=1):
         y_hat = logistic.cdf(w.T*x).item(0)
         gradient = gradient + (y_hat - y)*x
 
-    # gradient = gradient + lamb*w
-    w = w - learning_rate*(gradient + lamb*w)
+    gradient = gradient + lamb*w
+    w = w - learning_rate*(gradient)
     return w, gradient
 
 def predict(w, x, prob_threshold=0.5):
     """Returns 0 if system predicts the image to be a 4.
-        1 if the system predicts image to be a 9.
+    1 if the system predicts image to be a 9.
+
+
     """
     return_value = 0
     prob = logistic.cdf(w.T*x).item(0)
@@ -64,15 +66,9 @@ def train_and_test(lamb=1):
     print ""
 
 if __name__ == '__main__':
-    train_and_test(lamb=10.0**-8)
     train_and_test(lamb=10.0**-7)
     train_and_test(lamb=10.0**-6)
     train_and_test(lamb=10.0**-5)
     train_and_test(lamb=10.0**-4)
     train_and_test(lamb=10.0**-3)
     train_and_test(lamb=10.0**-2)
-    train_and_test(lamb=10.0**-1)
-    #train_and_test(lamb=10.0**0)
-    train_and_test(lamb=10.0**1)
-    train_and_test(lamb=10.0**2)
-    train_and_test(lamb=10.0**3)

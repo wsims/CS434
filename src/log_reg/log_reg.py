@@ -67,7 +67,7 @@ if __name__ == '__main__':
     plt.plot(runs, training_acc, '-b', label='training data')
     plt.plot(runs, testing_acc, '-r', label='testing data')
     plt.legend(loc='lower right')
-    plt.xlabel('Number of Gradient Descent Interations')
+    plt.xlabel('Number of Gradient Descent Iterations')
     plt.ylabel('Accuracy')
     plt.title('Model Accuracy')
     plt.show()
