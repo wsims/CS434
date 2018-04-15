@@ -7,6 +7,8 @@ handwritten 4s vs handwritten 9s.  Creates a plot of training
 accuracy and testing accuracy against the number of gradient 
 descents performed.  The plot is saved as "log_reg.png".
 
+This script is used to satisfy question 1 for part 2 of assignment 1.
+
 """
 
 import numpy as np
@@ -72,7 +74,7 @@ def predict(w, x, prob_threshold=0.5):
             contains all the feature data for one observation.
         prob_threshold -- a floating point value.  This sets the probability
             threshold which must be achieved for a positive result (i.e. 1)
-            is to be returned.
+            to be returned.
 
     Outputs:
         return_value -- an integer value that is either 0 or 1, depending on what
@@ -96,7 +98,7 @@ def test_accuracy(w, file):
 
     Outputs:
         accuracy -- a floating point value between 0 and 1 indicating what
-            percentage observations were accurately predicted.
+            percentage of observations were accurately predicted.
 
     """
     f = open(file, 'r')
