@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def get_housing_data(file, d):
     y_list = []
@@ -105,9 +106,60 @@ def main():
 
     # Subsection 4
     print "Results from subsection 4:"
+    x, y = get_housing_data('housing_train.txt', 2)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=2 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 2)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+
+    x, y = get_housing_data('housing_train.txt', 4)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=4 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 4)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+
+    x, y = get_housing_data('housing_train.txt', 6)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=6 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 6)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+    x, y = get_housing_data('housing_train.txt', 8)
+    w = np.linalg.inv(x.T*x)*x.T*y
+    print "D=8 Vector weights"
+    print w
+    print '\n'
+    x_test, y_test = get_housing_data('housing_test.txt', 8)
+    ASE_train = get_ASE_rand('housing_train.txt', w, x, y)
+    ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
+    print("Training data ASE: %f" % ASE_train)
+    print("Testing data ASE: %f" % ASE_test)
+    print '\n'
+
+
     x, y = get_housing_data('housing_train.txt', 10)
     w = np.linalg.inv(x.T*x)*x.T*y
-    print "Vector weights"
+    print "D=10 Vector weights"
     print w
     print '\n'
     x_test, y_test = get_housing_data('housing_test.txt', 10)
@@ -115,5 +167,24 @@ def main():
     ASE_test = get_ASE_rand('housing_test.txt', w, x_test, y_test)
     print("Training data ASE: %f" % ASE_train)
     print("Testing data ASE: %f" % ASE_test)
+
+    # Plot with respect to D
+    rand_ASE_train = []
+    rand_ASE_test = []
+    for i in range(0, 200, 2):
+        x, y = get_housing_data('housing_train.txt', i)
+        w = np.linalg.inv(x.T*x)*x.T*y
+        x_test, y_test = get_housing_data('housing_test.txt', i)
+        rand_ASE_train.append(get_ASE_rand('housing_train.txt', w, x, y))
+        rand_ASE_test.append(get_ASE_rand('housing_test.txt', w, x_test, y_test))
+
+    runs = range(0, 200, 2)
+    plt.plot(runs, rand_ASE_train, '-b', label='training data')
+    plt.plot(runs, rand_ASE_test, '-r', label='testing data')
+    plt.legend(loc='lower right')
+    plt.xlabel('D')
+    plt.ylabel('Average Standard Error')
+    plt.title('Training and Testing ASEs as a function of D')
+    plt.show()
 
 main()
