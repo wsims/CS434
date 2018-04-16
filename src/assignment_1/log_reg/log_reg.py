@@ -1,7 +1,7 @@
 """
 Usage: python log_reg.py
 
-Uses a learning rate of 6 and a gradient norm stopping condtion
+Uses a learning rate of 6 and a gradient norm stopping condition
 of 5000 to train a binary logistic regression classifier to identify
 handwritten 4s vs handwritten 9s.  Creates a plot of training
 accuracy and testing accuracy against the number of gradient 
