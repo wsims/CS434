@@ -227,7 +227,7 @@ def main():
     print '\n'
 
     # Plot with respect to D
-    print 'Plotting random feature data from d=0 to 200.'
+    # print 'Plotting random feature data from d=0 to 200.'
     rand_ASE_train = []
     rand_ASE_test = []
     for i in range(0, 200, 2):
