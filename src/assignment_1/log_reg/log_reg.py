@@ -13,7 +13,7 @@ This script is used to satisfy question 1 for part 2 of assignment 1.
 
 import numpy as np
 from scipy.stats import logistic
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import math
 
 def get_xy(value_list):
@@ -130,15 +130,15 @@ if __name__ == '__main__':
             break
 
     runs = range(1, count + 1)
-    plt.plot(runs, training_acc, '-b', label='training data')
-    plt.plot(runs, testing_acc, '-r', label='testing data')
-    plt.legend(loc='lower right')
-    plt.xlabel('Number of Gradient Descent Iterations')
-    plt.ylabel('Accuracy')
-    plt.title('Model Accuracy')
-    plt.savefig("log_reg.png")
-    print 'Plot saved as "log_reg.png"'
-
+#     plt.plot(runs, training_acc, '-b', label='training data')
+#     plt.plot(runs, testing_acc, '-r', label='testing data')
+#     plt.legend(loc='lower right')
+#     plt.xlabel('Number of Gradient Descent Iterations')
+#     plt.ylabel('Accuracy')
+#     plt.title('Model Accuracy')
+#     plt.savefig("log_reg.png")
+#     print 'Plot saved as "log_reg.png"'
+# 
     accuracy = test_accuracy(w, 'usps-4-9-train.csv')
     print("Training data classifier accuracy: %f" % accuracy)
     accuracy = test_accuracy(w, 'usps-4-9-test.csv')

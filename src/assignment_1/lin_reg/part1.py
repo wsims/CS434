@@ -14,7 +14,7 @@ This script is used to satisfy part 1 in its entirety for assignment 1.
 
 """
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def get_housing_data(file, d=0):
     """Reads feature and output data from a file and returns
@@ -238,14 +238,14 @@ def main():
         rand_ASE_test.append(get_ASE_rand('housing_test.txt', w, x_test, y_test))
 
     runs = range(0, 200, 2)
-    plt.plot(runs, rand_ASE_train, '-b', label='training data')
-    plt.plot(runs, rand_ASE_test, '-r', label='testing data')
-    plt.legend(loc='lower right')
-    plt.xlabel('d (Number of random features)')
-    plt.ylabel('Average Standard Error')
-    plt.title('Training and Testing ASEs as a function of d')
-    plt.savefig("part1.png")
-    print 'Plot saved as "part1.png"'
+    # plt.plot(runs, rand_ASE_train, '-b', label='training data')
+    # plt.plot(runs, rand_ASE_test, '-r', label='testing data')
+    # plt.legend(loc='lower right')
+    # plt.xlabel('d (Number of random features)')
+    # plt.ylabel('Average Standard Error')
+    # plt.title('Training and Testing ASEs as a function of d')
+    # plt.savefig("part1.png")
+    # print 'Plot saved as "part1.png"'
 
 if __name__ == '__main__':
     main()
