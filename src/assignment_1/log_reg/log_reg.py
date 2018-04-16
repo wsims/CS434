@@ -137,6 +137,7 @@ if __name__ == '__main__':
     plt.ylabel('Accuracy')
     plt.title('Model Accuracy')
     plt.savefig("log_reg.png")
+    print 'Plot saved as "log_reg.png"'
 
     accuracy = test_accuracy(w, 'usps-4-9-train.csv')
     print("Training data classifier accuracy: %f" % accuracy)

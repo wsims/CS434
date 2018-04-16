@@ -244,7 +244,8 @@ def main():
     plt.xlabel('d (Number of random features)')
     plt.ylabel('Average Standard Error')
     plt.title('Training and Testing ASEs as a function of d')
-    plt.show()
+    plt.savefig("part1.png")
+    print 'Plot saved as "part1.png"'
 
 if __name__ == '__main__':
     main()
