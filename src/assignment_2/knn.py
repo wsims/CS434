@@ -63,25 +63,42 @@ def knnErrors(train_data, test_data, k):
         predictions.append(knn(train_data, obs[0], k))
  
     errors = 0
-    for i in range (len(training_data)):
+    for i in range (len(train_data)):
         if ((train_data[i][1] < 0 and predictions[i] > 0) or (train_data[i][1] > 0 and predictions[i] < 0)):
             errors += 1
     
     return errors
 
+def knnLeaveOne(train_data, test_data, k):
+    predictions = []
+    for i, obs in enumerate(train_data):
+        temp = np.copy(obs)
+        train_data = np.delete(train_data, i, 0)
+        predictions.append(knn(train_data, temp[0], k))
+        train_data = np.insert(train_data, i, temp, 0)
+
+    errors = 0
+    for i in range (len(train_data)):
+        if ((train_data[i][1] < 0 and predictions[i] > 0) or (train_data[i][1] > 0 and predictions[i] < 0)):
+            errors += 1
+    
+    return errors
+            
 if __name__ == '__main__':
     training_data = read_data('knn_train.csv')
     testing_data = read_data('knn_test.csv')
     
     train_error = []
-    cross_val_error = []
+    leave_one_error = []
     test_data_error = []
     for k in range(1, 51, 2):
         train_error.append(knnErrors(training_data, training_data, k))
+        leave_one_error.append(knnLeaveOne(training_data, training_data, k))
         test_data_error.append(knnErrors(training_data, testing_data, k))
-
+    
     runs = range(1, 51, 2)
     plt.plot(runs, train_error, '-b', label='training error')
+    plt.plot(runs, leave_one_error, '-g', label='leave one error')
     plt.plot(runs, test_data_error, '-r', label='errors on test data')
     plt.legend(loc='lower right')
     plt.xlabel('K')
