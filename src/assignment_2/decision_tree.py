@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import matplotlib.pyplot as plt
 
 class DecisionTree:
     def __init__(self, data):
@@ -13,6 +14,9 @@ class DecisionTree:
         if self.early_leaf != True:
             self.feature, self.split, self.info_gain = get_best_split(data)
         self.expect = get_expect(pos_count, count)
+        #print("Feature: %d" % self.feature)
+        #print("Split: %f" % self.split)
+        #print("Expected value: %d" % self.expect)
 
     def split_data(self):
         data_low = []
@@ -42,7 +46,7 @@ class DecisionTree:
 
     def predict_data(self, row):
         node = self
-        while (node.left != None and node.right != None):
+        while (node.left != None):
             if row[node.feature] < node.split:
                 node = node.left
             else:
@@ -123,9 +127,6 @@ def get_best_split(data):
             opt_split = split
             opt_info_gain = info_gain
 
-    # print("Optimal feature to split over: %d" % opt_feature)
-    # print("Optimal split: %f" % opt_split)
-    # print("Optimal info gain: %f" % opt_info_gain)
     return (opt_feature, opt_split, opt_info_gain)
 
 def count_data(data):
@@ -160,12 +161,25 @@ def build_tree(data, k=0):
         tree.add_layer()
     return tree
 
-def compute_error(tree, data):
+def compute_accuracy(tree, data):
     correct = 0
     for row in data:
         if abs(tree.predict_data(row) - row[0]) < 1E-10:
             correct += 1
     return float(correct)/float(len(data))
+
+def plot_error(train_error_list, test_error_list):
+    d = range(1, len(train_error_list) + 1)
+    train_error_list = map(lambda x: 100*x, train_error_list)
+    test_error_list = map(lambda x: 100*x, test_error_list)
+    plt.plot(d, train_error_list, '-b', label='training error rate')
+    plt.plot(d, test_error_list, '-r', label='test error rate')
+    plt.legend(loc='lower left')
+    plt.xlabel('Decision Tree Depth Limit')
+    plt.ylabel('Classification Percent Error Rate')
+    plt.title('Training and Testing Error Rates as a Function of Tree Depth Limit')
+    plt.savefig("dtree_plot.png")
+    print 'Plot saved as "dtree_plot.png"'
 
 if __name__ == '__main__':
     train_data = read_data('knn_train.csv')
@@ -174,11 +188,21 @@ if __name__ == '__main__':
     print("Optimal feature to split over: %d" % feature)
     print("Optimal split: %f" % split)
     print("Optimal info gain: %f" % info_gain)
-    
-    dtree = build_tree(train_data, 1)
 
-    train_error = compute_error(dtree, train_data)
-    test_error = compute_error(dtree, test_data)
-    print("The training error is: %f" % train_error)
-    print("The testing error is: %f" % test_error)
+    train_error_list = []
+    test_error_list = []
+
+    for d in range(1, 7):
+        dtree = build_tree(train_data, d)
+
+        train_accuracy = compute_accuracy(dtree, train_data)
+        test_accuracy = compute_accuracy(dtree, test_data)
+        train_error_list.append(1 - train_accuracy)
+        test_error_list.append(1 - test_accuracy)
+        print("For a tree of depth %d:" % d)
+        print("The training error is: %f" % (1 - train_accuracy))
+        print("The testing error is: %f" % (1 - test_accuracy))
+        print("")
+
+    plot_error(train_error_list, test_error_list)
 
