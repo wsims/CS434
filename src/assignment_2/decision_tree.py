@@ -34,6 +34,8 @@ class DecisionTree:
         self.data = data
         pos_count, count = count_data(data)
         if pos_count == 0 or pos_count == count:
+            # Mark node as early_leaf if data set is of a single classification
+            # (e.g. 100 observations, 100 positive classifications)
             self.early_leaf = True
         if self.early_leaf != True:
             self.feature, self.split, self.info_gain = get_best_split(data)
@@ -218,20 +220,22 @@ def find_bin_split(data, feature):
             Value is between 0 and 1.
         best_split (float): The optimal threshold value to divide the data set
             according to the specific input feature.
-    
+
     """
     split_list = []
     sort_data = sort_by_feature(data, feature)
+
+    # Construct list of possible splits.
+    # Optimal splits only occur inbetween data points with different classifications
     for i in range(1, len(data)):
-        if abs(sort_data[i][0] - sort_data[i-1][0]) > 1E-10:
+        # If classifications don't match, sort_data[i][0] - sort_data[i-1][0] will be 2.0
+        # Otherwise, the value is 0.0
+        if abs(sort_data[i][0] - sort_data[i-1][0]) > 1:
             split_list.append((sort_data[i][feature] + sort_data[i-1][feature])/2)
-    
+
     # Find initial Entropy
-    pos_count = 0
-    for row in sort_data:
-        if abs(row[0]-1) < 1E-10:
-            pos_count += 1
-    H_initial = entropy(len(sort_data), pos_count)
+    pos_count, count = count_data(sort_data)
+    H_initial = entropy(count, pos_count)
 
     # Find best split and highest info gain
     info_gain = 0
