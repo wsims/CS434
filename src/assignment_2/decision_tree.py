@@ -1,6 +1,54 @@
 import numpy as np
 import math
 
+class DecisionTree:
+    def __init__(self, data):
+        self.left = None
+        self.right = None
+        self.early_leaf = False
+        self.data = data
+        pos_count, count = count_data(data)
+        if pos_count == 0 or pos_count == count:
+            self.early_leaf = True
+        if self.early_leaf != True:
+            self.feature, self.split, self.info_gain = get_best_split(data)
+        self.expect = get_expect(pos_count, count)
+
+    def split_data(self):
+        data_low = []
+        data_high = []
+        for row in self.data:
+            if row[self.feature] < self.split:
+                data_low.append(row)
+            else:
+                data_high.append(row)
+        return data_low, data_high
+
+    def add_layer(self):
+        self._add_nodes()
+
+    def _add_nodes(self):
+        if self.left == None and self.right == None:
+            # We will add two nodes here as long as the data is not a pure set
+            if self.early_leaf != True:
+                data_low, data_high = self.split_data()
+                self.left = DecisionTree(data_low)
+                self.right = DecisionTree(data_high)
+        else:
+            if self.left != None:
+                self.left._add_nodes()
+            if self.right != None:
+                self.right._add_nodes()
+
+    def predict_data(self, row):
+        node = self
+        while (node.left != None and node.right != None):
+            if row[node.feature] < node.split:
+                node = node.left
+            else:
+                node = node.right
+        return node.expect
+
 def read_data(file):
     data = []
     f = open(file, 'r')
@@ -75,53 +123,62 @@ def get_best_split(data):
             opt_split = split
             opt_info_gain = info_gain
 
-    print("Optimal feature to split over: %d" % opt_feature)
-    print("Optimal split: %f" % opt_split)
-    print("Optimal info gain: %f" % opt_info_gain)
+    # print("Optimal feature to split over: %d" % opt_feature)
+    # print("Optimal split: %f" % opt_split)
+    # print("Optimal info gain: %f" % opt_info_gain)
     return (opt_feature, opt_split, opt_info_gain)
 
-def compute_error_rate(train_data, test_data, feature, split):
-    sort_train_data = sort_by_feature(train_data, feature)
+def count_data(data):
     count = 0
     pos_count = 0
-    while sort_train_data[count][feature] < split:
-        if abs(sort_train_data[count][feature] - 1) < 1E-10:
+    for row in data:
+        if abs(row[0] - 1) < 1E-10:
             pos_count += 1
         count += 1
+    return pos_count, count
 
-    low_pred = -1
+def get_expect(pos_count, count):
     if float(pos_count)/float(count) >= 0.5:
-        low_pred = 1
-    
-    high_count = 0
-    pos_count = 0
-    while count < len(sort_train_data):
-        if abs(sort_train_data[count][feature] - 1) < 1E-10:
-            pos_count += 1
-        count += 1
-        high_count += 1
+        prediction = 1
+    else:
+        prediction = -1
+    return prediction
 
-    high_pred = -1
-    if float(pos_count)/float(high_count) >= 0.5:
-        high_pred = 1
-    
-    # Use prediction values to predict test values
+def split_data(data, feature, split):
+    data_low = []
+    data_high = []
+    for row in data:
+        if row[feature] < split:
+            data_low.append(row)
+        else:
+            data_how.append(row)
+    return data_low, data_high
+
+def build_tree(data, k=0):
+    tree = DecisionTree(data)
+    for i in range(k):
+        tree.add_layer()
+    return tree
+
+def compute_error(tree, data):
     correct = 0
-    for row in test_data:
-        if row[feature] < split and abs(low_pred - row[0]) < 1E-10:
+    for row in data:
+        if abs(tree.predict_data(row) - row[0]) < 1E-10:
             correct += 1
-        elif row[feature] >= split and abs(high_pred - row[0]) < 1E-10:
-                correct += 1
-    
-    return 1-float(correct)/float(len(test_data))
-
+    return float(correct)/float(len(data))
 
 if __name__ == '__main__':
     train_data = read_data('knn_train.csv')
     test_data = read_data('knn_test.csv')
     feature, split, info_gain = get_best_split(train_data)
-    train_error = compute_error_rate(train_data, train_data, feature, split)
-    test_error = compute_error_rate(train_data, test_data, feature, split)
+    print("Optimal feature to split over: %d" % feature)
+    print("Optimal split: %f" % split)
+    print("Optimal info gain: %f" % info_gain)
+    
+    dtree = build_tree(train_data, 1)
+
+    train_error = compute_error(dtree, train_data)
+    test_error = compute_error(dtree, test_data)
     print("The training error is: %f" % train_error)
     print("The testing error is: %f" % test_error)
-    
+
