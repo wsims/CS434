@@ -336,7 +336,7 @@ def split_data(data, feature, split):
         if row[feature] < split:
             data_low.append(row)
         else:
-            data_how.append(row)
+            data_high.append(row)
     return data_low, data_high
 
 def build_tree(data, d=0):
@@ -396,6 +396,15 @@ if __name__ == '__main__':
     print("Optimal feature to split over: %d" % feature)
     print("Optimal split: %f" % split)
     print("Optimal info gain: %f" % info_gain)
+    print("")
+    
+    train_low, train_high = split_data(train_data, feature, split)
+    pos_count, count = count_data(train_data)
+    print("Tree root: %d positives and %d negatives" % (pos_count, count - pos_count))
+    pos_count, count = count_data(train_low)
+    print("low leaf: %d positives and %d negatives" % (pos_count, count - pos_count))
+    pos_count, count = count_data(train_high)
+    print("high leaf: %d positives and %d negatives\n" % (pos_count, count - pos_count))
 
     train_error_list = []
     test_error_list = []
