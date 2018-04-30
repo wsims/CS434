@@ -32,7 +32,7 @@ def read_data(file):
         file (str): the name of a csv file.
     
     Outputs:
-        data (2D list): the data set read from the file.
+        data (2D list of lists): the data set read from the file.
 
     """
     x_list = []
@@ -69,6 +69,12 @@ def distance(x1, x2):
     return math.sqrt(((x1-x2).T*(x1-x2)).item(0))
 
 def knn(train_data, x, k):
+    """Uses the KNN algorithm to find the point with the nearest distance
+    and then sorts the distances in order of closest to furthest. The keys
+    associated with each distance are then used to calculate the prediction
+    based on the majority.
+    
+    """
     distance_list = []
     for obs in train_data:
         dist = distance(obs[0], x)
@@ -90,18 +96,30 @@ def knn(train_data, x, k):
     return predict
 
 def knn_errors(train_data, test_data, k):
+    """
+    Calcuates the number of errors by comparing the predicted values with
+    the values in the test set. Returns and integer value for the number
+    of errors
+
+    """
     predictions = []
     for obs in test_data:
         predictions.append(knn(train_data, obs[0], k))
  
     errors = 0
     for i in range(len(train_data)):
-        if ((train_data[i][1] < 0 and predictions[i] > 0) or (train_data[i][1] > 0 and predictions[i] < 0)):
+        if ((test_data[i][1] < 0 and predictions[i] > 0) or (test_data[i][1] > 0 and predictions[i] < 0)):
             errors += 1
     
     return errors
 
 def knn_leave_one(train_data, test_data, k):
+    """
+    Calculates the leave-one-out cross validation error rate. By storing
+    a temp and removing it from the training set and then adding it back
+    in. Returns an integer value for the number of errors.
+
+    """
     predictions = []
     for i, obs in enumerate(train_data):
         temp = np.copy(obs)
@@ -111,7 +129,7 @@ def knn_leave_one(train_data, test_data, k):
 
     errors = 0
     for i in range(len(train_data)):
-        if ((train_data[i][1] < 0 and predictions[i] > 0) or (train_data[i][1] > 0 and predictions[i] < 0)):
+        if ((test_data[i][1] < 0 and predictions[i] > 0) or (test_data[i][1] > 0 and predictions[i] < 0)):
             errors += 1
     
     return errors
@@ -123,18 +141,22 @@ if __name__ == '__main__':
     train_error = []
     leave_one_error = []
     test_data_error = []
-    for k in range(1, 51, 2):
+    k_list = range(1, 52, 2)
+    for k in range(1, 52, 2):
         train_error.append(knn_errors(training_data, training_data, k))
         leave_one_error.append(knn_leave_one(training_data, training_data, k))
         test_data_error.append(knn_errors(training_data, testing_data, k))
     
-    k = range(1, 51, 2)
-   #plt.plot(k, train_error, '-b', label='training error')
-   #plt.plot(k, leave_one_error, '-g', label='leave-one-out error')
-   #plt.plot(k, test_data_error, '-r', label='errors on test data')
-   #plt.legend(loc='lower right')
-   #plt.xlabel('K')
-   #plt.ylabel('Number of errors')
-   #plt.title('Number of KNN errors as a function of d')
-   #plt.savefig("part1.png")
-   #print 'Plot saved as "part1.png"
+    for i in range(len(train_error)):
+        print 'k: ' + str(k_list[i]) + ' | train errors: ' + str(train_error[i]) + ' | loo errors: ' + str(leave_one_error[i]) + ' | test errors: ' + str(test_data_error[i])
+
+    k = range(1, 52, 2)
+    #plt.plot(k, train_error, '-b', label='training error')
+    #plt.plot(k, leave_one_error, '-g', label='leave-one-out error')
+    #plt.plot(k, test_data_error, '-r', label='errors on test data')
+    #plt.legend(loc='lower right')
+    #plt.xlabel('K')
+    #plt.ylabel('Number of errors')
+    #plt.title('Number of KNN errors as a function of K')
+    #plt.savefig("part1.png")
+    #print 'Plot saved as "part1.png"
