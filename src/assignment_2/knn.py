@@ -22,7 +22,7 @@ matplotlib is not installed.
 
 import numpy as np
 import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def read_data(file):
     """Opens a .csv file, processes the data into a 2D python list, and
