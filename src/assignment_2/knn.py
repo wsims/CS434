@@ -129,12 +129,12 @@ if __name__ == '__main__':
         test_data_error.append(knn_errors(training_data, testing_data, k))
     
     k = range(1, 51, 2)
-    plt.plot(k, train_error, '-b', label='training error')
-    plt.plot(k, leave_one_error, '-g', label='leave-one-out error')
-    plt.plot(k, test_data_error, '-r', label='errors on test data')
-    plt.legend(loc='lower right')
-    plt.xlabel('K')
-    plt.ylabel('Number of errors')
-    plt.title('Number of KNN errors as a function of d')
-    plt.savefig("part1.png")
-    # print 'Plot saved as "part1.png"
+   #plt.plot(k, train_error, '-b', label='training error')
+   #plt.plot(k, leave_one_error, '-g', label='leave-one-out error')
+   #plt.plot(k, test_data_error, '-r', label='errors on test data')
+   #plt.legend(loc='lower right')
+   #plt.xlabel('K')
+   #plt.ylabel('Number of errors')
+   #plt.title('Number of KNN errors as a function of d')
+   #plt.savefig("part1.png")
+   #print 'Plot saved as "part1.png"
