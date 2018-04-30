@@ -22,6 +22,7 @@ matplotlib is not installed.
 
 import numpy as np
 import math
+import copy
 #import matplotlib.pyplot as plt
 
 def read_data(file):
@@ -38,6 +39,7 @@ def read_data(file):
     x_list = []
     y_list = []
     data = []
+    weighted_data = []
     f = open(file, 'r')
 
     # Read values from file
@@ -57,13 +59,27 @@ def read_data(file):
         for observation in x_list:
             observation[feature] = observation[feature]/max
 
+    # Extra Credit
+    weighted_list = copy.deepcopy(x_list)
+    for observation in weighted_list:
+        observation[22] = observation[22]* 15
+        observation[27] = observation[27]* 8
+        observation[21] = observation[21] * 7
+        observation[1] = observation[1] * 6
+        observation[29] = observation[29] * 5
+        observation[4] = observation[4] * 4
+        observation[9] = observation[9] * 3
+    
     # Create data set object
     for i in range(len(x_list)):
         x = np.matrix(x_list[i]).T
         y = y_list[i]
         data.append([x, y])
+    # Weighted matrix
+        x_weighted = np.matrix(weighted_list[i]).T
+        weighted_data.append([x_weighted, y])
 
-    return data
+    return data, weighted_data
 
 def distance(x1, x2):
     return math.sqrt(((x1-x2).T*(x1-x2)).item(0))
@@ -133,24 +149,35 @@ def knn_leave_one(train_data, test_data, k):
             errors += 1
     
     return errors
-            
+
 if __name__ == '__main__':
-    training_data = read_data('knn_train.csv')
-    testing_data = read_data('knn_test.csv')
-    
+    training_data, wtrain_data = read_data('knn_train.csv')
+    testing_data, wtest_data = read_data('knn_test.csv')
+
     train_error = []
     leave_one_error = []
     test_data_error = []
-    k_list = range(1, 52, 2)
-    for k in range(1, 52, 2):
+    wtrain_error = []
+    wlo_error = []
+    wtest_error = []
+    k_list = range(1, 51, 2)
+    for k in range(1, 51, 2):
         train_error.append(knn_errors(training_data, training_data, k))
         leave_one_error.append(knn_leave_one(training_data, training_data, k))
         test_data_error.append(knn_errors(training_data, testing_data, k))
+        wtrain_error.append(knn_errors(wtrain_data, wtrain_data, k))
+        wlo_error.append(knn_leave_one(wtrain_data, wtrain_data, k))
+        wtest_error.append(knn_errors(wtrain_data, wtest_data, k))
     
     for i in range(len(train_error)):
         print 'k: ' + str(k_list[i]) + ' | train errors: ' + str(train_error[i]) + ' | loo errors: ' + str(leave_one_error[i]) + ' | test errors: ' + str(test_data_error[i])
 
-    k = range(1, 52, 2)
+    print '----------------------------- Extra Credit -----------------------------------'    
+    
+    for i in range(len(train_error)):
+        print 'k: ' + str(k_list[i]) + ' | ec train errors: ' + str(wtrain_error[i]) + ' | ec loo errors: ' + str(wlo_error[i]) + ' | ec test errors: ' + str(wtest_error[i])
+
+    k = range(1, 51, 2)
     #plt.plot(k, train_error, '-b', label='training error')
     #plt.plot(k, leave_one_error, '-g', label='leave-one-out error')
     #plt.plot(k, test_data_error, '-r', label='errors on test data')
