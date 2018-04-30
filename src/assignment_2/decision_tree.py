@@ -22,7 +22,7 @@ Note: 'decision_tree.py', 'knn_test.csv', and 'knn_train.csv' must all be
 """
 import numpy as np
 import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class DecisionTree:
     """Learned decision tree object"""
@@ -421,5 +421,5 @@ if __name__ == '__main__':
         print("The testing error is: %f" % (1 - test_accuracy))
         print("")
 
-    plot_error(train_error_list, test_error_list)
+    #plot_error(train_error_list, test_error_list)
 
