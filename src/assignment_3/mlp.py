@@ -94,11 +94,9 @@ def NN_train_and_val(train_loader, validation_loader,
     if cuda:
         model.cuda()
 
-    optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.5)
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
     print(model)
-
-    epochs = 10
 
     lossv, accv, train_loss = [], [], []
     for epoch in range(1, epochs + 1):
