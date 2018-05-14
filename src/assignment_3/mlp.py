@@ -17,13 +17,13 @@ print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
 #if cuda:
 #    torch.cuda.manual_seed(42)
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
+class SigmoidNet(nn.Module):
+    def __init__(self, dropout=0.2):
+        super(SigmoidNet, self).__init__()
         self.fc1 = nn.Linear(32*32*3, 100)
-        self.fc1_drop = nn.Dropout(0.2)
+        self.fc1_drop = nn.Dropout(dropout)
         self.fc2 = nn.Linear(100, 100)
-        self.fc2_drop = nn.Dropout(0.2)
+        self.fc2_drop = nn.Dropout(dropout)
         self.fc3 = nn.Linear(100, 10)
 
     def forward(self, x):
@@ -33,6 +33,44 @@ class Net(nn.Module):
         x = F.sigmoid(self.fc2(x))
         x = self.fc2_drop(x)
         return F.log_softmax(self.fc3(x), 0)
+
+class ReluNet(nn.Module):
+    def __init__(self):
+        super(ReluNet, self).__init__()
+        self.fc1 = nn.Linear(32*32*3, 100)
+        self.fc1_drop = nn.Dropout(0.2)
+        self.fc2 = nn.Linear(100, 100)
+        self.fc2_drop = nn.Dropout(0.2)
+        self.fc3 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 32*32*3)
+        x = F.relu(self.fc1(x))
+        x = self.fc1_drop(x)
+        x = F.relu(self.fc2(x))
+        x = self.fc2_drop(x)
+        return F.log_softmax(self.fc3(x), 0)
+
+class FourLayerNet(nn.Module):
+    def __init__(self):
+        super(FourLayerNet, self).__init__()
+        self.fc1 = nn.Linear(32*32*3, 50)
+        self.fc1_drop = nn.Dropout(0.2)
+        self.fc2 = nn.Linear(50, 50)
+        self.fc2_drop = nn.Dropout(0.2)
+        self.fc3 = nn.Linear(50, 50)
+        self.fc3_drop = nn.Dropout(0.2)
+        self.fc4 = nn.Linear(50, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 32*32*3)
+        x = F.sigmoid(self.fc1(x))
+        x = self.fc1_drop(x)
+        x = F.sigmoid(self.fc2(x))
+        x = self.fc2_drop(x)
+        x = F.sigmoid(self.fc3(x))
+        x = self.fc3_drop(x)
+        return F.log_softmax(self.fc4(x), 0)
 
 def train(epoch, model, optimizer, train_loader, log_interval=100):
     model.train()
@@ -88,9 +126,9 @@ def get_cifar10_data(path='.', train=True, batch_size=32):
 
     return loader
 
-def NN_train_and_val(train_loader, validation_loader, 
+def sigmoid_NN_train_and_val(train_loader, validation_loader, 
                      lr=0.01, momentum=0.5, epochs=10):
-    model = Net()
+    model = SigmoidNet()
     if cuda:
         model.cuda()
 
@@ -105,9 +143,36 @@ def NN_train_and_val(train_loader, validation_loader,
 
     return train_loss, accv
 
-if __name__ == '__main__':
-    train_loader = get_cifar10_data(train=True)
-    validation_loader = get_cifar10_data(train=False)
-    train_loss1, accv1 = NN_train_and_val(train_loader, validation_loader, lr=0.1)
-    train_loss2, accv2 = NN_train_and_val(train_loader, validation_loader, lr=0.01)
-    train_loss3, accv3 = NN_train_and_val(train_loader, validation_loader, lr=0.001)
+def relu_NN_train_and_val(train_loader, validation_loader, 
+                     lr=0.01, momentum=0.5, epochs=10):
+    model = ReluNet()
+    if cuda:
+        model.cuda()
+
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+
+    print(model)
+
+    lossv, accv, train_loss = [], [], []
+    for epoch in range(1, epochs + 1):
+        train_loss.append(train(epoch, model, optimizer, train_loader))
+        validate(lossv, accv, model, validation_loader)
+
+    return train_loss, accv
+
+def four_NN_train_and_val(train_loader, validation_loader, 
+                     lr=0.01, momentum=0.5, epochs=10):
+    model = FourLayerNet()
+    if cuda:
+        model.cuda()
+
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+
+    print(model)
+
+    lossv, accv, train_loss = [], [], []
+    for epoch in range(1, epochs + 1):
+        train_loss.append(train(epoch, model, optimizer, train_loader))
+        validate(lossv, accv, model, validation_loader)
+
+    return train_loss, accv
