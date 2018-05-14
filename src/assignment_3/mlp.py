@@ -127,12 +127,14 @@ def get_cifar10_data(path='.', train=True, batch_size=32):
     return loader
 
 def sigmoid_NN_train_and_val(train_loader, validation_loader, 
-                     lr=0.01, momentum=0.5, epochs=10):
-    model = SigmoidNet()
+                     lr=0.01, momentum=0.5, epochs=10, dropout=0.2,
+                     weight_decay=0):
+    model = SigmoidNet(dropout)
     if cuda:
         model.cuda()
 
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum,
+                          weight_decay=weight_decay)
 
     print(model)
 

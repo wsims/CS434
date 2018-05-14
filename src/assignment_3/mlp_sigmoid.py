@@ -1,3 +1,5 @@
+"""Use this to complete part 1"""
+
 import mlp
 
 if __name__ == '__main__':
