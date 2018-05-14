@@ -17,19 +17,6 @@ print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
 #if cuda:
 #    torch.cuda.manual_seed(42)
 
-def unpickle(file):
-    with open(file, 'rb') as fo:
-        dict = cPickle.load(fo)
-    return dict
-
-def get_normalized_data(file):
-    dict = unpickle(file)
-    print dict['data']
-    dict['data'] = dict['data'].astype(float)
-    dict['data'] = dict['data']/255
-    print dict['data']
-    return dict
-
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -47,8 +34,9 @@ class Net(nn.Module):
         x = self.fc2_drop(x)
         return F.log_softmax(self.fc3(x), 0)
 
-def train(epoch, log_interval=100):
+def train(epoch, model, optimizer, log_interval=100):
     model.train()
+    avg_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
         if cuda:
             data, target = data.cuda(), target.cuda()
@@ -56,20 +44,24 @@ def train(epoch, log_interval=100):
         optimizer.zero_grad()
         output = model(data)
         loss = F.nll_loss(output, target)
+        avg_loss += loss.item()
         loss.backward()
         optimizer.step()
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
+    avg_loss /= len(train_loader)
+    return avg_loss
 
-def validate(loss_vector, accuracy_vector):
+def validate(loss_vector, accuracy_vector, model):
     model.eval()
     val_loss, correct = 0, 0
     for data, target in validation_loader:
         if cuda:
             data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(target)
+        with torch.no_grad():
+            data, target = Variable(data), Variable(target)
         output = model(data)
         val_loss += F.nll_loss(output, target).item()
         pred = output.data.max(1)[1] # get the index of the max log-probability
@@ -80,30 +72,23 @@ def validate(loss_vector, accuracy_vector):
 
     accuracy = 100. * correct / len(validation_loader.dataset)
     accuracy_vector.append(accuracy)
-    
+
     print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         val_loss, correct, len(validation_loader.dataset), accuracy))
 
-batch_size = 32
+def get_cifar10_data(path='.', train=True, batch_size=32):
+    kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+    loader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(path, train=train,
+                       transform=transforms.Compose([
+                           transforms.ToTensor()
+                       ])),
+        batch_size=batch_size, shuffle=train, **kwargs)
 
-train_loader = torch.utils.data.DataLoader(
-    datasets.CIFAR10('.', train=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor()
-                   ])),
-    batch_size=batch_size, shuffle=True, **kwargs)
+    return loader
 
-validation_loader = torch.utils.data.DataLoader(
-    datasets.CIFAR10('.', train=False, transform=transforms.Compose([
-                       transforms.ToTensor()
-                   ])),
-    batch_size=batch_size, shuffle=False, **kwargs)
-
-if __name__ == '__main__':
-    #get_normalized_data('cifar-10-batches-py/data_batch_1')
-
+def NN_train_and_val(lr=0.01, momentum=0.5, epochs=10):
     model = Net()
     if cuda:
         model.cuda()
@@ -112,11 +97,18 @@ if __name__ == '__main__':
 
     print(model)
 
-    #print train_loader.X_train
-
     epochs = 10
-    
-    lossv, accv = [], []
+
+    lossv, accv, train_loss = [], [], []
     for epoch in range(1, epochs + 1):
-        train(epoch)
-        validate(lossv, accv)
+        train_loss.append(train(epoch, model, optimizer))
+        validate(lossv, accv, model)
+
+    return train_loss, accv
+
+if __name__ == '__main__':
+    train_loader = get_cifar10_data(train=True)
+    validation_loader = get_cifar10_data(train=False)
+    train_loss1, accv1 = NN_train_and_val(lr=0.1)
+    train_loss2, accv2 = NN_train_and_val(lr=0.01)
+    train_loss3, accv3 = NN_train_and_val(lr=0.001)
