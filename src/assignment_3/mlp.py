@@ -16,10 +16,6 @@ from PIL import Image
 cuda = torch.cuda.is_available()
 print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
 
-#torch.manual_seed(42)
-#if cuda:
-#    torch.cuda.manual_seed(42)
-
 class CIFAR10v2(torch.utils.data.Dataset):
     """Based off of the default CIFAR10 dataset class: 
 
@@ -204,8 +200,13 @@ def validate(loss_vector, accuracy_vector, model, validation_loader):
     """Tests the classifier against the validation set.
 
     Inputs:
-        loss_vector (list)
-
+        loss_vector (list): list of negative log losses for each validation.
+            This function appends a new loss to the end of this list after running.
+        accuracy_vector (list): list of classifier accuracies for each validation.
+            This function appends a new accuracy to the end of this list upon completion.
+        model (nn.Module subclass): Neural network model object to validate
+        validation_loader (PyTorch Dataloader): loaded validation set for CIFAR10.
+            Can be either the validation set or the testing set.
     """
     model.eval()
     val_loss, correct = 0, 0
@@ -229,6 +230,20 @@ def validate(loss_vector, accuracy_vector, model, validation_loader):
         val_loss, correct, len(validation_loader.dataset), accuracy))
 
 def get_cifar10_data(path='.', train=True, batch_size=32):
+    """Generates a dataloader object for CIFAR10 data.
+
+    This function can generate the training set (data batches 1-4) and the
+    validation set (data batch 5).
+
+    Inputs:
+        path (string): Root of directory where 'cifar-10-batches-py' directory can be found
+        train (bool): If true, the returned dataloader contains the training data.  If
+            false, dataloader contains the validation data.
+        batch_size (int): Number of observations per batch.
+
+    Outputs:
+        loader (PyTorch Dataloader): Loader containing desired data set.
+    """
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
     loader = torch.utils.data.DataLoader(
@@ -240,20 +255,48 @@ def get_cifar10_data(path='.', train=True, batch_size=32):
 
     return loader
 
-def get_cifar10_test_data(path='.', train=False, batch_size=32):
+def get_cifar10_test_data(path='.', batch_size=32):
+    """Generates a dataloader object for CIFAR10 data.
+
+    This function can generate the testing set (test batch)
+
+    Inputs:
+        path (string): Root of directory where 'cifar-10-batches-py' directory can be found
+        batch_size (int): Number of observations per batch.
+
+    Outputs:
+        loader (PyTorch Dataloader): Loader containing desired data set.
+    """
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
     loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(path, train=train, transform=transforms.Compose([
+        datasets.CIFAR10(path, train=False, transform=transforms.Compose([
                            transforms.ToTensor()
                        ])),
-        batch_size=batch_size, shuffle=train, **kwargs)
+        batch_size=batch_size, shuffle=False, **kwargs)
 
     return loader
     
 def sigmoid_NN_train_and_val(train_loader, validation_loader, 
                      lr=0.01, momentum=0.5, epochs=10, dropout=0.2,
                      weight_decay=0):
+    """Creates and trains a three layer neural net using the sigmoid function
+    as the activation function.
+
+    Inputs:
+        train_loader (PyTorch Dataloader): Loader containing the training data
+        validation_loader (PyTorch Dataloader): Loader containing the validation data
+        lr (float): Learning rate
+        momentum (float): Momentum
+        epochs (int): Number of epochs to train classifier on.
+        dropout (float): Dropout rate for neural network.
+        weight_decay (float): Weight decay for neural network.
+
+    Outputs:
+        train_loss (list): list of average negative log loss on the training data for each epoch
+        accv (list): List of validation accuracy on the validation data for each epoch.
+        model (Neural Network object): Final, trained neural network object
+    """
     model = SigmoidNet(dropout)
     if cuda:
         model.cuda()
@@ -268,10 +311,25 @@ def sigmoid_NN_train_and_val(train_loader, validation_loader,
         train_loss.append(train(epoch, model, optimizer, train_loader))
         validate(lossv, accv, model, validation_loader)
 
-    return train_loss, accv
+    return train_loss, accv, model
 
 def relu_NN_train_and_val(train_loader, validation_loader, 
                      lr=0.01, momentum=0.5, epochs=10):
+    """Creates and trains a three layer neural net using the relu function
+    as the activation function.
+
+    Inputs:
+        train_loader (PyTorch Dataloader): Loader containing the training data
+        validation_loader (PyTorch Dataloader): Loader containing the validation data
+        lr (float): Learning rate
+        momentum (float): Momentum
+        epochs (int): Number of epochs to train classifier on.
+
+    Outputs:
+        train_loss (list): list of average negative log loss on the training data for each epoch
+        accv (list): List of validation accuracy on the validation data for each epoch.
+        model (Neural Network object): Final, trained neural network object
+    """
     model = ReluNet()
     if cuda:
         model.cuda()
@@ -285,10 +343,25 @@ def relu_NN_train_and_val(train_loader, validation_loader,
         train_loss.append(train(epoch, model, optimizer, train_loader))
         validate(lossv, accv, model, validation_loader)
 
-    return train_loss, accv
+    return train_loss, accv, model
 
 def four_NN_train_and_val(train_loader, validation_loader, 
                      lr=0.01, momentum=0.5, epochs=10):
+    """Creates and trains a four layer neural net using the sigmoid function
+    as the activation function.
+
+    Inputs:
+        train_loader (PyTorch Dataloader): Loader containing the training data
+        validation_loader (PyTorch Dataloader): Loader containing the validation data
+        lr (float): Learning rate
+        momentum (float): Momentum
+        epochs (int): Number of epochs to train classifier on.
+
+    Outputs:
+        train_loss (list): list of average negative log loss on the training data for each epoch
+        accv (list): List of validation accuracy on the validation data for each epoch.
+        model (Neural Network object): Final, trained neural network object
+    """
     model = FourLayerNet()
     if cuda:
         model.cuda()
@@ -302,4 +375,4 @@ def four_NN_train_and_val(train_loader, validation_loader,
         train_loss.append(train(epoch, model, optimizer, train_loader))
         validate(lossv, accv, model, validation_loader)
 
-    return train_loss, accv
+    return train_loss, accv, model
