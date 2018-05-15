@@ -21,6 +21,19 @@ print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
 #    torch.cuda.manual_seed(42)
 
 class CIFAR10v2(torch.utils.data.Dataset):
+    """Based off of the default CIFAR10 dataset class: 
+
+    https://github.com/pytorch/vision/blob/master/torchvision/datasets/cifar.py
+
+    Inputs:
+        root (string): Root directory where 'cifar-10-batches-py' folder is stored.
+        train (bool): If true, train dataset is created from data batch files 1-4.  If false,
+            creates a test dataset from data batch 5.
+        transform (callable): function that takes in a PIL image and returns a transformed version.
+            For our cases, we typically use this to return a normalized tensor.
+        target_transform (callable): function that takes in the target and transforms it.
+
+    """
     base_folder = 'cifar-10-batches-py'
     train_list = [
         'data_batch_1',
@@ -67,6 +80,14 @@ class CIFAR10v2(torch.utils.data.Dataset):
             self.test_data = self.test_data.transpose((0, 2, 3, 1))
 
     def __getitem__(self, index):
+        """
+        Inputs:
+            index (int): Index value
+
+        Outputs:
+            img (tensor): transformed image
+            target (int): number from 0-9 corresponding to actual classification
+        """
         if self.train:
             img, target = self.train_data[index], self.train_labels[index]
         else:
@@ -83,12 +104,14 @@ class CIFAR10v2(torch.utils.data.Dataset):
         return img, target
 
     def __len__(self):
+        """Returns the number of observations in the dataset"""
         if self.train:
             return len(self.train_data)
         else:
             return len(self.test_data)
 
 class SigmoidNet(nn.Module):
+    """A three layer neural net that uses sigmoid as the activation function"""
     def __init__(self, dropout=0.2):
         super(SigmoidNet, self).__init__()
         self.fc1 = nn.Linear(32*32*3, 100)
@@ -106,6 +129,7 @@ class SigmoidNet(nn.Module):
         return F.log_softmax(self.fc3(x), 0)
 
 class ReluNet(nn.Module):
+    """A three layer neural net that uses relu as the activation function"""
     def __init__(self):
         super(ReluNet, self).__init__()
         self.fc1 = nn.Linear(32*32*3, 100)
@@ -123,6 +147,7 @@ class ReluNet(nn.Module):
         return F.log_softmax(self.fc3(x), 0)
 
 class FourLayerNet(nn.Module):
+    """A four layer neural net that uses sigmoid as the activation function"""
     def __init__(self):
         super(FourLayerNet, self).__init__()
         self.fc1 = nn.Linear(32*32*3, 50)
@@ -144,6 +169,18 @@ class FourLayerNet(nn.Module):
         return F.log_softmax(self.fc4(x), 0)
 
 def train(epoch, model, optimizer, train_loader, log_interval=100):
+    """Trains the model through an entire epoch.
+
+    Inputs:
+        epoch (int): Index corresponding to the epoch number.
+        model (nn.Module subclass): Neural network model object to train
+        optimizer (torch.optim): PyTorch optimizer object
+        train_loader (PyTorch Dataloader): loaded training data set for CIFAR10
+        log_interval (int): Controls how many batches are run in between logging
+
+    Outputs:
+        avg_loss (float): Average negative log loss over the course of this epoch.
+    """
     model.train()
     avg_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -164,6 +201,12 @@ def train(epoch, model, optimizer, train_loader, log_interval=100):
     return avg_loss
 
 def validate(loss_vector, accuracy_vector, model, validation_loader):
+    """Tests the classifier against the validation set.
+
+    Inputs:
+        loss_vector (list)
+
+    """
     model.eval()
     val_loss, correct = 0, 0
     for data, target in validation_loader:
@@ -197,6 +240,17 @@ def get_cifar10_data(path='.', train=True, batch_size=32):
 
     return loader
 
+def get_cifar10_test_data(path='.', train=False, batch_size=32):
+    kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
+
+    loader = torch.utils.data.DataLoader(
+        datasets.CIFAR10(path, train=train, transform=transforms.Compose([
+                           transforms.ToTensor()
+                       ])),
+        batch_size=batch_size, shuffle=train, **kwargs)
+
+    return loader
+    
 def sigmoid_NN_train_and_val(train_loader, validation_loader, 
                      lr=0.01, momentum=0.5, epochs=10, dropout=0.2,
                      weight_decay=0):
