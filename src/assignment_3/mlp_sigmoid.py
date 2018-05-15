@@ -12,7 +12,7 @@
 """
 
 import mlp
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 EPOCHS = 100
 
@@ -34,29 +34,29 @@ if __name__ == '__main__':
     epochs = range(1, EPOCHS + 1) 
 
     # Training loss plot 
-    plt.figure(1)
-    plt.plot(epochs, train_loss1, '-b', label='lr=0.1')
-    plt.plot(epochs, train_loss2, '-r', label='lr=0.01')
-    plt.plot(epochs, train_loss3, '-g', label='lr=0.001')
-    plt.plot(epochs, train_loss4, '-p', label='lr=0.0001')
-    plt.legend(loc='lower right')
-    plt.xlabel('Number of epochs')
-    plt.ylabel('Average Loss')
-    plt.title('Negative Log Loss on Training Data as a Function of Epochs')
-    plt.savefig("sigmoid_training_loss.png")
+    #plt.figure(1)
+    #plt.plot(epochs, train_loss1, '-b', label='lr=0.1')
+    #plt.plot(epochs, train_loss2, '-r', label='lr=0.01')
+    #plt.plot(epochs, train_loss3, '-g', label='lr=0.001')
+    #plt.plot(epochs, train_loss4, '-p', label='lr=0.0001')
+    #plt.legend(loc='lower right')
+    #plt.xlabel('Number of epochs')
+    #plt.ylabel('Average Loss')
+    #plt.title('Negative Log Loss on Training Data as a Function of Epochs')
+    #plt.savefig("sigmoid_training_loss.png")
     print 'Plot saved as "sigmoid_training_loss.png"'
 
     # Validation accuracy plot
-    plt.figure(2)
-    plt.plot(epochs, accv1, '-b', label='lr=0.1')
-    plt.plot(epochs, accv2, '-r', label='lr=0.01')
-    plt.plot(epochs, accv3, '-g', label='lr=0.001')
-    plt.plot(epochs, accv4, '-p', label='lr=0.0001')
-    plt.legend(loc='lower right')
-    plt.xlabel('Number of epochs')
-    plt.ylabel('Accuracy (Percentage)')
-    plt.title('Classifier Accuracy on Validation Data as a Function of Epochs')
-    plt.savefig("sigmoid_accuracy.png")
+    #plt.figure(2)
+    #plt.plot(epochs, accv1, '-b', label='lr=0.1')
+    #plt.plot(epochs, accv2, '-r', label='lr=0.01')
+    #plt.plot(epochs, accv3, '-g', label='lr=0.001')
+    #plt.plot(epochs, accv4, '-p', label='lr=0.0001')
+    #plt.legend(loc='lower right')
+    #plt.xlabel('Number of epochs')
+    #plt.ylabel('Accuracy (Percentage)')
+    #plt.title('Classifier Accuracy on Validation Data as a Function of Epochs')
+    #plt.savefig("sigmoid_accuracy.png")
     print 'Plot saved as "sigmoid_accuracy.png"'
     
     # Determine which model is best and then perform validation on test data

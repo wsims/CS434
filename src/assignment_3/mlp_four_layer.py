@@ -1,7 +1,7 @@
 """Use this to complete part 4"""
 
 import mlp
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 EPOCHS = 100
 
@@ -18,31 +18,31 @@ if __name__ == '__main__':
 
     epochs = range(1, EPOCHS + 1) 
 
-    plt.figure(1)
-    plt.plot(epochs, fl_train_loss1, '-b', label='4-layer w/ sigmoid activation')
-    plt.plot(epochs, train_loss1, '-r', label='3-layer w/ sigmoid activation')
-    plt.legend(loc='lower right')
-    plt.xlabel('Number of epochs')
-    plt.ylabel('Average Negative Log Loss')
-    plt.title('Negative Log Likelihood Loss on Training Data as a Function of Epochs')
-    plt.savefig("fl_training_loss.png")
+    #plt.figure(1)
+    #plt.plot(epochs, fl_train_loss1, '-b', label='4-layer w/ sigmoid activation')
+    #plt.plot(epochs, train_loss1, '-r', label='3-layer w/ sigmoid activation')
+    #plt.legend(loc='lower right')
+    #plt.xlabel('Number of epochs')
+    #plt.ylabel('Average Negative Log Loss')
+    #plt.title('Negative Log Likelihood Loss on Training Data as a Function of Epochs')
+    #plt.savefig("fl_training_loss.png")
     print 'Plot saved as "fl_training_loss.png"'
 
-    plt.figure(2)
-    plt.plot(epochs, fl_accv1, '-b', label='4-layer w/ sigmoid activation')
-    plt.plot(epochs, accv1, '-r', label='3-layer w/ sigmoid activaction')
-    plt.legend(loc='lower right')
-    plt.xlabel('Number of epochs')
-    plt.ylabel('Accuracy (Percentage)')
-    plt.title('Classifier Accuracy on Validation Data as a Function of Epochs')
-    plt.savefig("fl_accuracy.png")
+    #plt.figure(2)
+    #plt.plot(epochs, fl_accv1, '-b', label='4-layer w/ sigmoid activation')
+    #plt.plot(epochs, accv1, '-r', label='3-layer w/ sigmoid activaction')
+    #plt.legend(loc='lower right')
+    #plt.xlabel('Number of epochs')
+    #plt.ylabel('Accuracy (Percentage)')
+    #plt.title('Classifier Accuracy on Validation Data as a Function of Epochs')
+    #plt.savefig("fl_accuracy.png")
     print 'Plot saved as "fl_accuracy.png"'
 
     print("Results of validation on testing set with four-layer net:")
     lossv, accv = [], []
     mlp.validate(lossv, accv, four_layer_model, test_loader)
 
-    print("Results of validation on testing set with three-layer:")
+    print("Results of validation on testing set with three-layer net:")
     lossv, accv = [], []
     mlp.validate(lossv, accv, three_layer_model, test_loader)
 

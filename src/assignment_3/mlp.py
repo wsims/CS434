@@ -13,7 +13,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import seaborn as sns
 import cPickle
 import os
