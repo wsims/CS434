@@ -1,3 +1,10 @@
+"""MLP Module
+
+This module includes the subroutines to create multilayer perceptron networks
+for all parts of assignment 3.
+
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
