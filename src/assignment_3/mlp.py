@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import cPickle
+import os
+import os.path
+from PIL import Image
 
 cuda = torch.cuda.is_available()
 print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
@@ -16,6 +19,74 @@ print('Using PyTorch version:', torch.__version__, 'CUDA:', cuda)
 #torch.manual_seed(42)
 #if cuda:
 #    torch.cuda.manual_seed(42)
+
+class CIFAR10v2(torch.utils.data.Dataset):
+    base_folder = 'cifar-10-batches-py'
+    train_list = [
+        'data_batch_1',
+        'data_batch_2',
+        'data_batch_3',
+        'data_batch_4'
+    ]
+
+    test_list = [
+        'data_batch_5'
+    ]
+
+    def __init__(self, root, train=True,
+                 transform=None, target_transform=None):
+        self.root = os.path.expanduser(root)
+        self.transform = transform
+        self.target_transform = target_transform
+        self.train = train
+
+        if self.train:
+            self.train_data = []
+            self.train_labels = []
+            for fentry in self.train_list:
+                file = os.path.join(self.root, self.base_folder, fentry)
+                fo = open(file, 'rb')
+                entry = cPickle.load(fo)
+                self.train_data.append(entry['data'])
+                self.train_labels += entry['labels']
+                fo.close()
+
+            self.train_data = np.concatenate(self.train_data)
+            self.train_data = self.train_data.reshape((40000, 3, 32, 32))
+            self.train_data = self.train_data.transpose((0, 2, 3, 1))
+
+        else:
+            f = self.train_list[0]
+            file = os.path.join(self.root, self.base_folder, f)
+            fo = open(file, 'rb')
+            entry = cPickle.load(fo)
+            self.test_data = entry['data']
+            self.test_labels = entry['labels']
+            fo.close()
+            self.test_data = self.test_data.reshape((10000, 3, 32, 32))
+            self.test_data = self.test_data.transpose((0, 2, 3, 1))
+
+    def __getitem__(self, index):
+        if self.train:
+            img, target = self.train_data[index], self.train_labels[index]
+        else:
+            img, target = self.test_data[index], self.test_labels[index]
+
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target
+
+    def __len__(self):
+        if self.train:
+            return len(self.train_data)
+        else:
+            return len(self.test_data)
 
 class SigmoidNet(nn.Module):
     def __init__(self, dropout=0.2):
@@ -118,10 +189,10 @@ def get_cifar10_data(path='.', train=True, batch_size=32):
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 
     loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(path, train=train,
-                       transform=transforms.Compose([
-                           transforms.ToTensor()
-                       ])),
+        CIFAR10v2(path, train=train,
+                  transform=transforms.Compose([
+                      transforms.ToTensor()
+                  ])),
         batch_size=batch_size, shuffle=train, **kwargs)
 
     return loader
