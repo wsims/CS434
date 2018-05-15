@@ -19,6 +19,7 @@ if __name__ == '__main__':
 
     epochs = range(1, EPOCHS + 1) 
 
+    #Plot the 
     plt.figure(1)
     plt.plot(epochs, train_loss1, '-b', label='lr=0.1')
     plt.plot(epochs, train_loss2, '-r', label='lr=0.01')
@@ -26,8 +27,8 @@ if __name__ == '__main__':
     plt.plot(epochs, train_loss4, '-p', label='lr=0.0001')
     plt.legend(loc='lower right')
     plt.xlabel('Number of epochs')
-    plt.ylabel('Average nll')
-    plt.title('Negative Log Likelihood Loss on Training Data as a Function of Epochs')
+    plt.ylabel('Average Loss')
+    plt.title('Negative Log Loss on Training Data as a Function of Epochs')
     plt.savefig("sigmoid_training_loss.png")
     print 'Plot saved as "sigmoid_training_loss.png"'
 
@@ -38,8 +39,8 @@ if __name__ == '__main__':
     plt.plot(epochs, accv4, '-p', label='lr=0.0001')
     plt.legend(loc='lower right')
     plt.xlabel('Number of epochs')
-    plt.ylabel('Accuracy')
-    plt.title('Classifier Accuracy on Testing Data as a Function of Epochs')
+    plt.ylabel('Accuracy (Percentage)')
+    plt.title('Classifier Accuracy on Validation Data as a Function of Epochs')
     plt.savefig("sigmoid_accuracy.png")
     print 'Plot saved as "sigmoid_accuracy.png"'
     
