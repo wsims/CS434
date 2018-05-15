@@ -14,7 +14,7 @@
 import mlp
 import matplotlib.pyplot as plt
 
-EPOCHS = 3
+EPOCHS = 100
 
 if __name__ == '__main__':
     train_loader = mlp.get_cifar10_data(train=True)
