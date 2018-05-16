@@ -1,7 +1,7 @@
 """Use this to complete part 1
 
     Usage:
-        $ python mlp_relu.py
+        $ python mlp_sigmoid.py
 
     Trains a three layer neural network using the sigmoid function as the
         activation function.  Trains on four different learning rates

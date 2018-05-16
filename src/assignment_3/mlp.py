@@ -14,7 +14,7 @@ from torch.autograd import Variable
 
 import numpy as np
 #import matplotlib.pyplot as plt
-import seaborn as sns
+#import seaborn as sns
 import cPickle
 import os
 import os.path

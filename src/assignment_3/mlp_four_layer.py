@@ -1,9 +1,15 @@
-"""Use this to complete part 4"""
+"""Use this to complete part 4
+
+    Usage:
+        $ python mlp_four_layer.py
+
+"""
+
 
 import mlp
 #import matplotlib.pyplot as plt
 
-EPOCHS = 100
+EPOCHS = 1
 
 if __name__ == '__main__':
     train_loader = mlp.get_cifar10_data(train=True)
@@ -26,7 +32,7 @@ if __name__ == '__main__':
     #plt.ylabel('Average Negative Log Loss')
     #plt.title('Negative Log Likelihood Loss on Training Data as a Function of Epochs')
     #plt.savefig("fl_training_loss.png")
-    print 'Plot saved as "fl_training_loss.png"'
+    #print 'Plot saved as "fl_training_loss.png"'
 
     #plt.figure(2)
     #plt.plot(epochs, fl_accv1, '-b', label='4-layer w/ sigmoid activation')
@@ -36,7 +42,7 @@ if __name__ == '__main__':
     #plt.ylabel('Accuracy (Percentage)')
     #plt.title('Classifier Accuracy on Validation Data as a Function of Epochs')
     #plt.savefig("fl_accuracy.png")
-    print 'Plot saved as "fl_accuracy.png"'
+    #print 'Plot saved as "fl_accuracy.png"'
 
     print("Results of validation on testing set with four-layer net:")
     lossv, accv = [], []

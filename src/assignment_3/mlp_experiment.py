@@ -1,4 +1,9 @@
-"""Use this to complete part 3"""
+"""Use this to complete part 3
+
+    Usage:
+        $ python mlp_experiment.py
+
+"""
 
 import mlp
 #import matplotlib.pyplot as plt
