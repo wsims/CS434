@@ -12,9 +12,7 @@ class Cluster(object):
         self.cluster.append(obs)
 
     def distance(self, obs):
-        distance = 0
-        for i in range(len(obs)):
-            distance += (obs[i] - self.mean[i])**2
+        distance = np.linalg.norm(obs - self.mean)
 
         return distance
 
@@ -70,15 +68,14 @@ class KCluster(object):
             means.append(mean)
         return means
 
-def get_data(file='unsupervised.txt'):
+def get_data(file='data-1.txt'):
     f = open(file, 'r')
     data_list = []
 
     for line in f:
         value_list = map(int, line.split(','))
-        data_list.append(value_list)
+        data_list.append(np.array(value_list).T)
 
-    # data_mat = np.matrix(data_list)
     return data_list
 
 def get_k_seeds(data, k):
@@ -88,6 +85,14 @@ def get_k_seeds(data, k):
         seed_index = random.randint(0, length-1)
         means.append(data[seed_index])
     return means
+
+def compare(old_means, new_means):
+    comp = True
+    for i in range(len(old_means)):
+        if not np.array_equal(old_means[i], new_means[i]):
+            comp = False
+            break
+    return comp
 
 def k_means(data, k):
     # Pick seeds
@@ -101,7 +106,7 @@ def k_means(data, k):
     new_means = cluster_set.get_new_means()
 
     # Create new clusters until means converge
-    while cmp(old_means, new_means) != 0:
+    while not compare(old_means, new_means):
         cluster_set = KCluster(new_means)
         cluster_set.cluster_data(data)
         SSE_list.append(cluster_set.get_SSE())
