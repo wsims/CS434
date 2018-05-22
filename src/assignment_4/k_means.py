@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math
+import matplotlib.pyplot as plt
 
 class Cluster(object):
     def __init__(self, mean):
@@ -14,7 +15,7 @@ class Cluster(object):
         distance = 0
         for i in range(len(obs)):
             distance += (obs[i] - self.mean[i])**2
-    
+
         return distance
 
     def get_SSE(self):
@@ -25,12 +26,15 @@ class Cluster(object):
 
     def get_new_mean(self):
         new_mean = []
-        for i in range(len(self.cluster[0])):
-            sum = 0
-            for value in self.cluster:
-                sum += value[i]
-            sum /= float(len(self.cluster))
-            new_mean.append(sum)
+        if len(self.cluster) == 0:
+            new_mean = self.mean
+        else:
+            for i in range(len(self.mean)):
+                sum = 0
+                for value in self.cluster:
+                    sum += value[i]
+                sum /= float(len(self.cluster))
+                new_mean.append(sum)
         return new_mean
 
 class KCluster(object):
@@ -87,26 +91,65 @@ def get_k_seeds(data, k):
 
 def k_means(data, k):
     # Pick seeds
-    means = get_k_seeds(data, k)
+    new_means = get_k_seeds(data, k)
 
     # Create initial cluster
-    cluster_set = KCluster(means)
+    cluster_set = KCluster(new_means)
     cluster_set.cluster_data(data)
-    new_SSE = cluster_set.get_SSE()
-    old_SSE = -1
+    SSE_list = [cluster_set.get_SSE()]
+    old_means = new_means
+    new_means = cluster_set.get_new_means()
 
-    # Create new clusters until SSE converges
-    while old_SSE != new_SSE:
-        means = cluster_set.get_new_means()
-        cluster_set = KCluster(means)
+    # Create new clusters until means converge
+    while cmp(old_means, new_means) != 0:
+        cluster_set = KCluster(new_means)
         cluster_set.cluster_data(data)
-        old_SSE = new_SSE
-        new_SSE = cluster_set.get_SSE()
-    return new_SSE
+        SSE_list.append(cluster_set.get_SSE())
+        old_means = new_means
+        new_means = cluster_set.get_new_means()
+    return SSE_list
 
 if __name__ == '__main__':
+    # Data Retrieval
     data = get_data()
-    SSE = k_means(data, 10)
-    print SSE
-    # print data.shape
+
+    # Question 2.1
+    SSE_list = k_means(data, 2)
+    print("SSE convergence list for k=2:")
+    print(SSE_list)
+    cluster_updates = range(len(SSE_list))
+
+    # Question 2.1 plot
+    plt.figure(1)
+    plt.plot(cluster_updates, SSE_list, '-b')
+    plt.xlabel('Number of cluster updates')
+    plt.ylabel('SSE')
+    plt.title('K-means algorithm SSE convergence with k=2')
+    plt.savefig("k2_means.png")
+    print("Question 2.1 plot saved as 'k2_means.png'\n")
+
+    # Question 2.2
+    SSE_list = []
+    for i in range(2, 11):
+        print("Running k-means for k = %d:" % i)
+        SSE_min = float('inf')
+        for j in range(10):
+            print("Performing trial %d..." % (j+1))
+            SSE_converge_list = k_means(data, i)
+            SSE = SSE_converge_list[len(SSE_converge_list)-1]
+            if SSE < SSE_min:
+                SSE_min = SSE
+        SSE_list.append(SSE_min)
+    k_values = range(2, 11)
+    print("List of SSE for k-values 2-10:")
+    print(SSE_list)
+
+    # Question 2.2 plot
+    plt.figure(2)
+    plt.plot(k_values, SSE_list, '-b')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Lowest SSE out of 10 trials')
+    plt.title('K-means algorithm SSE vs. number of clusters k')
+    plt.savefig("k_clusters_2_2.png")
+    print("Question 2.2 plot saved as 'k_clusters_2_2.png'")
 
