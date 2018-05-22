@@ -12,7 +12,8 @@ class Cluster(object):
         self.cluster.append(obs)
 
     def distance(self, obs):
-        distance = np.linalg.norm(obs - self.mean)
+        x = obs - self.mean
+        distance = np.dot(x.T, x).item(0)
 
         return distance
 
