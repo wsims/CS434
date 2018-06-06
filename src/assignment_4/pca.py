@@ -17,7 +17,7 @@ Usage:
 """
 
 import numpy as np
-from PIL import Image
+#from PIL import Image
 
 def get_data(file='data-1.txt'):
     """Extract data from a file and return it
@@ -139,10 +139,10 @@ if __name__ == '__main__':
         print("Eigenvalue %d: %f" % (i+1, eig_list[i][0].real))
 
     # Question 3.2
-    save_image(mean, "mean.png")
+    #save_image(mean, "mean.png")
 
-    for i in range(10):
-        save_image(eig_list[i][1], "eigenvector" + str(i+1) + ".png")
+    #for i in range(10):
+        #save_image(eig_list[i][1], "eigenvector" + str(i+1) + ".png")
 
     # Question 3.3
     image_list = [[-float('inf'), None] for i in range(10)]
@@ -153,7 +153,7 @@ if __name__ == '__main__':
                 image_list[i][0] = projection_mag
                 image_list[i][1] = row
 
-    for i, image in enumerate(image_list):
-        save_image(image[1].T, "dimension" + str(i+1) + ".png")
+    #for i, image in enumerate(image_list):
+        #save_image(image[1].T, "dimension" + str(i+1) + ".png")
 
 

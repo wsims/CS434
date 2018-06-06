@@ -17,7 +17,7 @@ Usage:
 import numpy as np
 import random
 import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class Cluster(object):
     """Individual Cluster object"""
@@ -182,13 +182,13 @@ if __name__ == '__main__':
     cluster_updates = range(len(SSE_list))
 
     # Question 2.1 plot
-    plt.figure(1)
-    plt.plot(cluster_updates, SSE_list, '-b')
-    plt.xlabel('Number of clustering iterations')
-    plt.ylabel('SSE')
-    plt.title('K-means algorithm SSE convergence with k=2')
-    plt.savefig("k2_means.png")
-    print("Question 2.1 plot saved as 'k2_means.png'\n")
+    #plt.figure(1)
+    #plt.plot(cluster_updates, SSE_list, '-b')
+    #plt.xlabel('Number of clustering iterations')
+    #plt.ylabel('SSE')
+    #plt.title('K-means algorithm SSE convergence with k=2')
+    #plt.savefig("k2_means.png")
+    #print("Question 2.1 plot saved as 'k2_means.png'\n")
 
     # Question 2.2
     SSE_list = []
@@ -207,11 +207,11 @@ if __name__ == '__main__':
     print(SSE_list)
 
     # Question 2.2 plot
-    plt.figure(2)
-    plt.plot(k_values, SSE_list, '-b')
-    plt.xlabel('Number of clusters')
-    plt.ylabel('Lowest SSE out of 10 trials')
-    plt.title('K-means algorithm SSE vs. number of clusters k')
-    plt.savefig("k_clusters_2_2.png")
-    print("Question 2.2 plot saved as 'k_clusters_2_2.png'")
+    #plt.figure(2)
+    #plt.plot(k_values, SSE_list, '-b')
+    #plt.xlabel('Number of clusters')
+    #plt.ylabel('Lowest SSE out of 10 trials')
+    #plt.title('K-means algorithm SSE vs. number of clusters k')
+    #plt.savefig("k_clusters_2_2.png")
+    #print("Question 2.2 plot saved as 'k_clusters_2_2.png'")
 
