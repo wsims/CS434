@@ -49,7 +49,7 @@ def get_window_data(data_file, index_file):
             window_list.append(window)
             window_label.append(labels[i])
 
-    return np.matrix(window_list), np.matrix(window_label).T
+    return window_list, window_label
 
 if __name__ == "__main__":
     w_list, w_label = get_window_data("train_data/Subject_1.csv", 

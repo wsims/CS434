@@ -154,14 +154,14 @@ def entropy(total_count, positive_count):
         H_s (float): Entropy of the data set.
 
     """
-    # Probabilities
-    p_pos = float(positive_count)/float(total_count)
-    p_neg = 1 - p_pos
    
     if total_count == positive_count or positive_count == 0:
         # Necessary edge case since log(0) is undefined
         H_s = 0
     else:
+        # Probabilities
+        p_pos = float(positive_count)/float(total_count)
+        p_neg = 1 - p_pos
         H_s = - p_pos * math.log(p_pos, 2) - p_neg * math.log(p_neg, 2)
     return H_s
 
@@ -265,7 +265,7 @@ def get_best_split(data):
     opt_info_gain = 0
     opt_split = 0
     opt_feature = 0
-    for feature in range(1, 31):
+    for feature in range(1, len(data[0])):
         info_gain, split = find_bin_split(data, feature)
         if info_gain > opt_info_gain:
             opt_feature = feature
