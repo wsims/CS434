@@ -38,8 +38,11 @@ class RandomForest(object):
 
     def _get_bootstrap(self):
         bootstrap_set = []
+        for i in range(len(self.positive_data)/2):
+            choice = random.randint(0, len(self.positive_data)-1)
+            bootstrap_set.append(self.positive_data[choice])
         for i in range(len(self.data)):
-            choice = random.randint(0, len(self.data)-1)
+            choice = random.randint(0, len(self.data)-len(self.positive_data)/2-1)
             bootstrap_set.append(self.data[choice])
 #        bootstrap_set = self.positive_data[:]
 #        for i in range(int(7.0/3.0*len(self.positive_data))):
@@ -81,6 +84,14 @@ class PerformanceEval(object):
             else:
                 self.TN += 1
 
+    def __add__(self, other):
+        new = PerformanceEval()
+        new.TP = self.TP + other.TP
+        new.FN = self.FN + other.FN
+        new.FP = self.FP + other.FP
+        new.TN = self.TN + other.TN
+        new.total = self.total + other.total
+        return new
 
     def accuracy(self):
         return float(self.TP + self.TN)/float(self.total)
@@ -107,20 +118,52 @@ def dtree_data_trans(data_list, label_list):
 
 def compute_accuracy(forest, data):
     correct = 0
+    eval = PerformanceEval()
     for row in data:
-        if abs(forest.predict_binary(row) - row[0]) < 1E-10:
-            correct += 1
-    return float(correct)/float(len(data))
+        eval.add_result(forest.predict_binary(row), row[0])
+    return eval
+
+def cross_validate(data_list, forest_size):
+    for i in range(4):
+        data = data_list[i % 4] + data_list[(i + 1) % 4] + data_list[(i + 2) % 4]
+        forest = RandomForest(data, forest_size)
+        eval = compute_accuracy(forest, data_list[(i + 3) % 4])
+
 
 if __name__ == "__main__":
+
+    data_list = []
+
+    # Subject A = 1, B = 4, C = 6, D = 9
     window_list, window_label = dp.get_window_data("train_data/Subject_1.csv",
                                                    "train_data/list_1.csv")
 
-    data = dtree_data_trans(window_list, window_label)
+    data_list.append(dtree_data_trans(window_list, window_label))
+
+    window_list, window_label = dp.get_window_data("train_data/Subject_4.csv",
+                                                   "train_data/list_4.csv")
+
+    data_list.append(dtree_data_trans(window_list, window_label))
+
+    window_list, window_label = dp.get_window_data("train_data/Subject_6.csv",
+                                                   "train_data/list_6.csv")
+
+    data_list.append(dtree_data_trans(window_list, window_label))
+
+    window_list, window_label = dp.get_window_data("train_data/Subject_9.csv",
+                                                   "train_data/list_9.csv")
+
+    data_list.append(dtree_data_trans(window_list, window_label))
+
+    
+
 
     forest = RandomForest(data, 9)
-    accuracy = compute_accuracy(forest, data)
-    print("The training accuracy is: %f" % accuracy)
+    eval = compute_accuracy(forest, data)
+    print("The training accuracy is: %f" % eval.accuracy())
+    print("The training precision is: %f" % eval.precision())
+    print("The training recall is: %f" % eval.recall())
+    print("The training F1 measure is: %f" % eval.F1())
 
 #    d = 10
 #    for d in range(10, 20):
