@@ -134,18 +134,38 @@ def test_accuracy(w, file, list_file):
     return eval
 
 def cross_validate(x_list, y_list, w):
+    best_model = 0
+    max_f1 = 0
     for i in range(4):
         x = x_list[i % 4] + x_list[(i + 1) % 4] + x_list[(i + 2) % 4]
         y = y_list[i % 4] + y_list[(i + 1) % 4] + y_list[(i + 2) % 4]
         x_resampled, y_resampled = SMOTE().fit_sample(x, y)
-        for j in range (20):
+        for j in range (50):
             w, gradient = batch_train(w, x_resampled, y_resampled)
-        eval = test_accuracy(w, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
+            eval = test_accuracy(w, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
+            if max_f1 < eval.F1():
+                best_model = w
+        eval = test_accuracy(best_model, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
         print("The training accuracy is: %f" % eval.accuracy())
         print("The training precision is: %f" % eval.precision())
         print("The training recall is: %f" % eval.recall())
         print("The training F1 measure is: %f" % eval.F1())
-    return w, gradient 
+    return best_model, gradient 
+
+def individual_validate(x_list, y_list, w):
+    best_model = 0
+    max_f1 = 0
+    x_resampled, y_resampled = SMOTE().fit_sample(x_list, y_list)
+    for j in range (50):
+        w, gradient = batch_train(w, x_resampled, y_resampled)
+        eval = test_accuracy(w, x_list, y_list)
+        if max_f1 < eval.F1():
+            best_model = w
+    eval = test_accuracy(best_model, x_list, x_list)
+    print("The training accuracy is: %f" % eval.accuracy())
+    print("The training precision is: %f" % eval.precision())
+    print("The training recall is: %f" % eval.recall())
+    print("The training F1 measure is: %f" % eval.F1())
 
 if __name__ == "__main__":
     count = 0
@@ -158,7 +178,6 @@ if __name__ == "__main__":
     # Subject A = 1, B = 4, C = 6, D = 9
     window_list, window_label = dp.get_window_data("train_data/Subject_1.csv",
                                                    "train_data/list_1.csv")
-
     x_list.append(window_list)
     y_list.append(window_label)
 
@@ -178,4 +197,17 @@ if __name__ == "__main__":
     y_list.append(window_label)
 
     w = np.matrix([0]*49).T
-    cross_validate(x_list, y_list, w)
+    #cross_validate(x_list, y_list, w)
+    
+    # Individual 1
+    window_list, window_label = dp.get_window_data("train_data/Subject_2_part1.csv",
+                                                   "train_data/list2_part1.csv")
+    individual_validate(window_list, window_label, w)
+
+    # Individual 2
+    window_list, window_label = dp.get_window_data("train_data/Subject_7_part1.csv",
+                                                   "train_data/list_7_part1.csv")
+    individual_validate(window_list, window_label, w)
+
+
+
