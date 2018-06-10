@@ -11,21 +11,52 @@ sys.path.insert(0,parentdir)
 
 import data_process as dp
 
-def get_xy(file, list_file):
-    """Returns x vector and y value from value list in file.
-    
-    Inputs:
-        value_list -- a python list of data taken from a single row in
-            the training file.
-    Outputs:
-        x -- a numpy matrix object in the form of a column vector
-        y -- the last value from the 'value_list' input
-    
-    """
-    x, y = dp.get_window_data(file, list_file)
-    x_resampled, y_resampled = SMOTE().fit_sample(x, y)    
+class PerformanceEval(object):
 
-    return x_resampled, y_resampled
+    def __init__(self):
+        self.TP = 0
+        self.FN = 0
+        self.FP = 0
+        self.TN = 0
+        self.total = 0
+
+    def add_result(self, prediction, label):
+        self.total += 1
+        if prediction == 1:
+            if label == 1:
+                self.TP += 1
+            else:
+                self.FP += 1
+        else:
+            if label == 1:
+                self.FN += 1
+            else:
+                self.TN += 1
+
+    def __add__(self, other):
+        new = PerformanceEval()
+        new.TP = self.TP + other.TP
+        new.FN = self.FN + other.FN
+        new.FP = self.FP + other.FP
+        new.TN = self.TN + other.TN
+        new.total = self.total + other.total
+        return new
+
+    def accuracy(self):
+        return float(self.TP + self.TN)/float(self.total)
+
+    def recall(self):
+        if self.FN + self.FN == 0:
+            return -1
+        return float(self.TP)/float(self.TP + self.FN)
+
+    def precision(self):
+        if self.TP + self.FP == 0:
+            return -1
+        return float(self.TP)/float(self.TP + self.FP)
+
+    def F1(self):
+        return float(2*self.TP)/float(2*self.TP + self.FP + self.FN)
 
 def batch_train(w, window_list, window_label, learning_rate=6):
     """Performs one iteration of gradient descent using the full
@@ -72,7 +103,6 @@ def predict(w, x, prob_threshold=0.5):
     """
     return_value = 0
     prob = logistic.cdf(w.T*x).item(0)
-    print prob
     if prob > prob_threshold:
         return_value = 1
     return return_value
@@ -89,34 +119,63 @@ def test_accuracy(w, file, list_file):
             percentage of observations were accurately predicted.
     """
     
-    window_list, window_label = dp.get_window_data(file, list_file)
+    #window_list, window_label = dp.get_window_data(file, list_file)
                                                  
     count = 0
     correct = 0
-
+    eval = PerformanceEval()
     for line in window_list:
         y = window_label[count]
         count += 1
         x = np.matrix(line).T
-        if predict(w, x) == int(y):
-            correct += 1
+        eval.add_result(predict(w, x), int(y))
+        #if predict(w, x) == int(y):
+            #correct += 1
+    return eval
 
-    return float(correct)/float(count)
+def cross_validate(x_list, y_list, w):
+    for i in range(4):
+        x = x_list[i % 4] + x_list[(i + 1) % 4] + x_list[(i + 2) % 4]
+        y = y_list[i % 4] + y_list[(i + 1) % 4] + y_list[(i + 2) % 4]
+        x_resampled, y_resampled = SMOTE().fit_sample(x, y)
+        for j in range (20):
+            w, gradient = batch_train(w, x_resampled, y_resampled)
+        eval = test_accuracy(w, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
+        print("The training accuracy is: %f" % eval.accuracy())
+        print("The training precision is: %f" % eval.precision())
+        print("The training recall is: %f" % eval.recall())
+        print("The training F1 measure is: %f" % eval.F1())
+    return w, gradient 
 
 if __name__ == "__main__":
     count = 0
     training_acc = []
     testing_acc = []   
-    x, y = get_xy('train_data/Subject_1.csv', 'train_data/list_1.csv')
-    w = np.matrix([0]*49).T
-    while True:
-        w, gradient = batch_train(w, x, y)
 
-        count += 1
-        #training_acc.append(test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv'))
-        print test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv')
-        if np.linalg.norm(gradient) < 10000:
-            break
-    
-    accuracy = test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv')
-    print("Training data classifier accuracy: %f" % accuracy)
+    x_list = []
+    y_list = []
+
+    # Subject A = 1, B = 4, C = 6, D = 9
+    window_list, window_label = dp.get_window_data("train_data/Subject_1.csv",
+                                                   "train_data/list_1.csv")
+
+    x_list.append(window_list)
+    y_list.append(window_label)
+
+    window_list, window_label = dp.get_window_data("train_data/Subject_4.csv",
+                                                   "train_data/list_4.csv")
+    x_list.append(window_list)
+    y_list.append(window_label)
+
+    window_list, window_label = dp.get_window_data("train_data/Subject_6.csv",
+                                                   "train_data/list_6.csv")
+    x_list.append(window_list)
+    y_list.append(window_label)
+
+    window_list, window_label = dp.get_window_data("train_data/Subject_9.csv",
+                                                   "train_data/list_9.csv")
+    x_list.append(window_list)
+    y_list.append(window_label)
+
+    w = np.matrix([0]*49).T
+    cross_validate(x_list, y_list, w)
