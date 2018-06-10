@@ -2,6 +2,7 @@ import numpy as np
 import random
 import math
 from scipy.stats import logistic
+from imblearn.over_sampling import SMOTE
 
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -10,7 +11,23 @@ sys.path.insert(0,parentdir)
 
 import data_process as dp
 
-def batch_train(w, file, list_file, learning_rate=6):
+def get_xy(file, list_file):
+    """Returns x vector and y value from value list in file.
+    
+    Inputs:
+        value_list -- a python list of data taken from a single row in
+            the training file.
+    Outputs:
+        x -- a numpy matrix object in the form of a column vector
+        y -- the last value from the 'value_list' input
+    
+    """
+    x, y = dp.get_window_data(file, list_file)
+    x_resampled, y_resampled = SMOTE().fit_sample(x, y)    
+
+    return x_resampled, y_resampled
+
+def batch_train(w, window_list, window_label, learning_rate=6):
     """Performs one iteration of gradient descent using the full
     training data set.
     Inputs:
@@ -25,7 +42,7 @@ def batch_train(w, file, list_file, learning_rate=6):
             This is the gradient used to improve the prediction vector.
     """
     gradient = np.matrix([0]*49).T
-    window_list, window_label = dp.get_window_data(file, list_file)
+    #window_list, window_label = get_xy(file, list_file)
 
     count = 0
     for line in window_list:
@@ -55,6 +72,7 @@ def predict(w, x, prob_threshold=0.5):
     """
     return_value = 0
     prob = logistic.cdf(w.T*x).item(0)
+    print prob
     if prob > prob_threshold:
         return_value = 1
     return return_value
@@ -89,15 +107,15 @@ if __name__ == "__main__":
     count = 0
     training_acc = []
     testing_acc = []   
-
+    x, y = get_xy('train_data/Subject_1.csv', 'train_data/list_1.csv')
     w = np.matrix([0]*49).T
     while True:
-        w, gradient = batch_train(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv')
+        w, gradient = batch_train(w, x, y)
 
         count += 1
-        training_acc.append(test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv'))
-        #testing_acc.append(test_accuracy(w, 'usps-4-9-test.csv'))
-        if np.linalg.norm(gradient) < 7000:
+        #training_acc.append(test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv'))
+        print test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv')
+        if np.linalg.norm(gradient) < 10000:
             break
     
     accuracy = test_accuracy(w, 'train_data/Subject_1.csv', 'train_data/list_1.csv')
