@@ -17,6 +17,22 @@ def get_data(data_file):
 
     return data_list, label_list
 
+def get_test_data(data_file):
+    df = open(data_file, 'r')
+    data_list = []
+
+    for line in df:
+        formatted_row = []
+        value_list = line.split(',')
+        for i in range(7):
+            for j in range(7):
+                formatted_row.append(value_list[7+i+7*j])
+        data_list.append(map(float, formatted_row))
+
+    df.close()
+
+    return data_list
+
 def get_indices(index_file):
     index_f = open(index_file, 'r')
     index_list = []
@@ -55,6 +71,12 @@ if __name__ == "__main__":
     w_list, w_label = get_window_data("train_data/Subject_1.csv", 
                                       "train_data/list_1.csv")
 
-    print w_label
+    test_list = get_test_data("test_data/general_test_instances.csv")
 
+    print len(w_label)
+    print w_list[0]
 
+    print test_list[0]
+
+    print len(w_list[0])
+    print len(test_list[0])

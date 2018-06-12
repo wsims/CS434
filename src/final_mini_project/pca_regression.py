@@ -87,6 +87,27 @@ def float_to_binary(pred):
         value = 1
     return value
 
+def cross_validate(data_list, label_list, features):
+    eval = None
+    for i in range(4):
+        print "Validating set %d..." % i
+        data = data_list[i%4] + data_list[(i+1)%4] + data_list[(i+2)%4]
+        label = label_list[i%4] + label_list[(i+1)%4] + label_list[(i+2)%4]
+        data, label = get_training_data(data, label)
+        test_data = get_data_matrix(data_list[(i+3)%4])
+        test_label = np.matrix(label_list[(i+3)%4]).T
+
+        X_pca, X_pca_test = dimension_reduction(data, test_data, features)
+
+        W = regress(X_pca, label)
+
+        if i == 0:
+            eval = compute_accuracy(X_pca_test, test_label, W)
+        else:
+            eval = eval + compute_accuracy(X_pca_test, test_label, W)
+
+    return eval
+
 def compute_accuracy(data, Y, W):
     eval = perf.PerformanceEval()
     for i, row in enumerate(data):
@@ -100,35 +121,47 @@ if __name__ == "__main__":
 
     w_list, w_label = dp.get_window_data("train_data/Subject_1.csv",
                                          "train_data/list_1.csv")
-    #data_list.append(w_list)
-    #label_list.append(w_label)
+    data_list.append(w_list)
+    label_list.append(w_label)
 
-    #w_list, w_label = dp.get_window_data("train_data/Subject_4.csv",
-    #                                     "train_data/list_4.csv")
-    #data_list.append(w_list)
-    #label_list.append(w_label)
+    w_list, w_label = dp.get_window_data("train_data/Subject_4.csv",
+                                         "train_data/list_4.csv")
+    data_list.append(w_list)
+    label_list.append(w_label)
 
-    #w_list, w_label = dp.get_window_data("train_data/Subject_6.csv",
-    #                                     "train_data/list_6.csv")
-    #data_list.append(w_list)
-    #label_list.append(w_label)
+    w_list, w_label = dp.get_window_data("train_data/Subject_6.csv",
+                                         "train_data/list_6.csv")
+    data_list.append(w_list)
+    label_list.append(w_label)
 
-    #w_list, w_label = dp.get_window_data("train_data/Subject_9.csv",
-    #                                     "train_data/list_9.csv")
-    #data_list.append(w_list)
-    #label_list.append(w_label)
-    
+    w_list, w_label = dp.get_window_data("train_data/Subject_9.csv",
+                                         "train_data/list_9.csv")
+    data_list.append(w_list)
+    label_list.append(w_label)
 
-    X_test = get_data_matrix(w_list)
-    Y_test = np.matrix(w_label).T
+    f1_list = []
+    for i in range(1, 31):
+        print "Running test for %d features" % i
+        f1_list.append(cross_validate(data_list, label_list, i).F1())
+        print ""
 
-    X, Y = get_training_data(w_list, w_label)
+    best_index = f1_list.index(max(f1_list))
 
-    X_pca, X_pca_test = dimension_reduction(X, X_test)
+    print "Highest F1 score found when using %d features" % (best_index + 1)
+    print "F1 score at peak: %f" % f1_list[best_index]
 
-    W = regress(X_pca, Y)
+    print f1_list
 
-    eval = compute_accuracy(X_pca_test, Y_test, W)
-    print eval.accuracy()
-    print eval.F1()
+    #X_test = get_data_matrix(w_list)
+    #Y_test = np.matrix(w_label).T
+
+    #X, Y = get_training_data(w_list, w_label)
+
+    #X_pca, X_pca_test = dimension_reduction(X, X_test)
+
+    #W = regress(X_pca, Y)
+
+    #eval = compute_accuracy(X_pca_test, Y_test, W)
+    #print eval.accuracy()
+    #print eval.F1()
 
