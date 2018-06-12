@@ -1,0 +1,134 @@
+import numpy as np
+
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir)
+
+import data_process as dp
+import performance as perf
+from assignment_4 import pca
+
+def get_data_matrix(w_list):
+    new_list = []
+    for row in w_list:
+        new_list.append([1.0] + row)
+    return np.matrix(new_list)
+
+def get_training_data(w_list, w_label):
+    sampled_W_list = []
+    sampled_W_label = []
+    sampled_W_list += w_list
+    sampled_W_label += w_label
+    pos = 0
+    total = 0
+    for i in range(len(w_label)):
+        if w_label[i] == 1:
+            pos += 1
+        total += 1
+    oversample = int((0.163*total - pos)/((1-0.163)*pos))
+    if oversample > 0:
+        for i in range(len(w_label)):
+            if w_label[i] == 1:
+                for j in range(oversample):
+                    sampled_W_list.append(w_list[i])
+                    sampled_W_label.append(w_label[i])
+
+    X = get_data_matrix(sampled_W_list)
+    Y = np.matrix(sampled_W_label).T
+
+    return X, Y
+
+
+def get_principal_components(X):
+    mean = pca.get_mean(X)
+    cov_mat = pca.get_covariance(X, mean)
+    eig_list = pca.get_eigen(cov_mat)
+    return eig_list
+
+def pca_projection(X, eig_list, mean, features):
+    new_data_list = []
+    for row in X:
+        new_row = []
+        for i in range(features):
+            proj = pca.get_projection_mag(row.T, eig_list[i][1].real, mean)
+            new_row.append(proj)
+        new_data_list.append(new_row)
+    return np.matrix(new_data_list)
+
+def dimension_reduction(train_data, test_data, features=10):
+    mean = pca.get_mean(train_data)
+
+    eig_list = get_principal_components(train_data)
+
+    #for i in range(len(eig_list)):
+    #    print("Eigenvalue %d: %f" % (i+1, eig_list[i][0]))
+
+    X_pca = pca_projection(train_data, eig_list, mean, features)
+    X_pca_test = pca_projection(test_data, eig_list, mean, features)
+    return X_pca, X_pca_test
+
+
+
+def regress(X, Y):
+    return np.linalg.inv(X.T*X)*X.T*Y
+
+def prediction(X_pca_row, W):
+    #pca_obs = []
+    #for i in range(features):
+    #    proj = pca.get_projection_mag(X_i, eig_list[i][1].real, mean)
+    #    pca_obs.append(proj)
+    #pca_obs = np.matrix(pca_obs).T
+    return np.inner(X_pca_row.T, W.T).item(0)
+
+def float_to_binary(pred):
+    value = 0
+    if pred >= 0.25:
+        value = 1
+    return value
+
+def compute_accuracy(data, Y, W):
+    eval = perf.PerformanceEval()
+    for i, row in enumerate(data):
+        eval.add_result(float_to_binary(prediction(row.T, W)),
+                        int(Y.item(i)))
+    return eval
+
+if __name__ == "__main__":
+
+    data_list, label_list = [], []
+
+    w_list, w_label = dp.get_window_data("train_data/Subject_1.csv",
+                                         "train_data/list_1.csv")
+    #data_list.append(w_list)
+    #label_list.append(w_label)
+
+    #w_list, w_label = dp.get_window_data("train_data/Subject_4.csv",
+    #                                     "train_data/list_4.csv")
+    #data_list.append(w_list)
+    #label_list.append(w_label)
+
+    #w_list, w_label = dp.get_window_data("train_data/Subject_6.csv",
+    #                                     "train_data/list_6.csv")
+    #data_list.append(w_list)
+    #label_list.append(w_label)
+
+    #w_list, w_label = dp.get_window_data("train_data/Subject_9.csv",
+    #                                     "train_data/list_9.csv")
+    #data_list.append(w_list)
+    #label_list.append(w_label)
+    
+
+    X_test = get_data_matrix(w_list)
+    Y_test = np.matrix(w_label).T
+
+    X, Y = get_training_data(w_list, w_label)
+
+    X_pca, X_pca_test = dimension_reduction(X, X_test)
+
+    W = regress(X_pca, Y)
+
+    eval = compute_accuracy(X_pca_test, Y_test, W)
+    print eval.accuracy()
+    print eval.F1()
+

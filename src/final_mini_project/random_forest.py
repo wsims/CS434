@@ -8,6 +8,7 @@ sys.path.insert(0,parentdir)
 
 from assignment_2 import decision_tree as dt
 import data_process as dp
+import performance as perf
 
 class RandomForest(object):
 
@@ -20,9 +21,9 @@ class RandomForest(object):
 
         self.negative_data, self.positive_data = self._split_data(data)
         for i in range(size):
-            print "Generating tree %d..." % (i + 1)
+            #print "Generating tree %d..." % (i + 1)
             b_set = self._get_bootstrap()
-            self.trees.append(dt.build_tree(b_set, 20))
+            self.trees.append(dt.build_tree(b_set, 25))
 
     def _split_data(self, data):
         negative_data = []
@@ -38,17 +39,13 @@ class RandomForest(object):
 
     def _get_bootstrap(self):
         bootstrap_set = []
-        for i in range(len(self.positive_data)/2):
+        for i in range(int(len(self.positive_data))):
             choice = random.randint(0, len(self.positive_data)-1)
             bootstrap_set.append(self.positive_data[choice])
-        for i in range(len(self.data)):
-            choice = random.randint(0, len(self.data)-len(self.positive_data)/2-1)
+        for i in range(10*int(len(self.positive_data))):
+            choice = random.randint(0, len(self.data)-1)
             bootstrap_set.append(self.data[choice])
-#        bootstrap_set = self.positive_data[:]
-#        for i in range(int(7.0/3.0*len(self.positive_data))):
-#            choice = random.randint(0, len(self.negative_data)-1)
-#            bootstrap_set.append(self.negative_data[choice])
-#
+
         return bootstrap_set
 
     def predict_binary(self, observation):
@@ -62,49 +59,6 @@ class RandomForest(object):
             prediction = 1
         return prediction
 
-class PerformanceEval(object):
-
-    def __init__(self):
-        self.TP = 0
-        self.FN = 0
-        self.FP = 0
-        self.TN = 0
-        self.total = 0
-
-    def add_result(self, prediction, label):
-        self.total += 1
-        if abs(prediction - 1.0) < 1E-10:
-            if abs(label - 1.0) < 1E-10:
-                self.TP += 1
-            else:
-                self.FP += 1
-        else:
-            if abs(label - 1.0) < 1E-10:
-                self.FN += 1
-            else:
-                self.TN += 1
-
-    def __add__(self, other):
-        new = PerformanceEval()
-        new.TP = self.TP + other.TP
-        new.FN = self.FN + other.FN
-        new.FP = self.FP + other.FP
-        new.TN = self.TN + other.TN
-        new.total = self.total + other.total
-        return new
-
-    def accuracy(self):
-        return float(self.TP + self.TN)/float(self.total)
-
-    def recall(self):
-        return float(self.TP)/float(self.TP + self.FN)
-
-    def precision(self):
-        return float(self.TP)/float(self.TP + self.FP)
-
-    def F1(self):
-        return float(2*self.TP)/float(2*self.TP + self.FP + self.FN)
-
 def dtree_data_trans(data_list, label_list):
     full_array = []
 
@@ -117,18 +71,47 @@ def dtree_data_trans(data_list, label_list):
     return full_array
 
 def compute_accuracy(forest, data):
-    correct = 0
-    eval = PerformanceEval()
+    eval = perf.PerformanceEval()
     for row in data:
         eval.add_result(forest.predict_binary(row), row[0])
     return eval
 
 def cross_validate(data_list, forest_size):
+    eval = None
     for i in range(4):
+        print "Validating set %d..." % i
         data = data_list[i % 4] + data_list[(i + 1) % 4] + data_list[(i + 2) % 4]
         forest = RandomForest(data, forest_size)
-        eval = compute_accuracy(forest, data_list[(i + 3) % 4])
+        if i == 0:
+            eval = compute_accuracy(forest, data_list[(i + 3) % 4])
+        else:
+            eval = eval + compute_accuracy(forest, data_list[(i + 3) % 4])
 
+    return eval
+
+def split_data(data):
+    negative_data = []
+    positive_data = []
+
+    for row in data:
+        if row[0] == -1:
+            negative_data.append(row)
+        else:
+            positive_data.append(row)
+
+    return negative_data, positive_data
+
+
+def get_cross_sets(data):
+    random.shuffle(data)
+    n_data, p_data = split_data(data)
+    data_list = []
+    data_list.append(n_data[:len(n_data)/4] + p_data[:len(p_data)/4])
+    data_list.append(n_data[len(n_data)/4:len(n_data)/2] + p_data[len(p_data)/4:len(p_data)/2])
+    data_list.append(n_data[len(n_data)/2:3*len(n_data)/4] + p_data[len(p_data)/2:3*len(p_data)/4])
+    data_list.append(n_data[3*len(n_data)/4:] + p_data[3*len(p_data)/4:])
+
+    return data_list
 
 if __name__ == "__main__":
 
@@ -155,21 +138,40 @@ if __name__ == "__main__":
 
     data_list.append(dtree_data_trans(window_list, window_label))
 
-    
+    individual_data = []
 
+    window_list, window_label = dp.get_window_data("train_data/Subject_2_part1.csv",
+                                                   "train_data/list2_part1.csv")
 
-    forest = RandomForest(data, 9)
-    eval = compute_accuracy(forest, data)
-    print("The training accuracy is: %f" % eval.accuracy())
-    print("The training precision is: %f" % eval.precision())
-    print("The training recall is: %f" % eval.recall())
-    print("The training F1 measure is: %f" % eval.F1())
+    individual_data = dtree_data_trans(window_list, window_label)
 
-#    d = 10
-#    for d in range(10, 20):
-#        dtree = dt.build_tree(data, d)
-#
-#        train_accuracy = dt.compute_accuracy(dtree, data)
-#        print("For a tree of depth %d:" % d)
-#        print("The training accuracy is: %f" % train_accuracy)
-#
+    indie_data_list = get_cross_sets(individual_data)
+
+    # Cross validation
+    domain = range(1, 101, 2)
+    f1_list = []
+
+    for i in range(1, 101, 2):
+        print "Running test for forest size %d" % i
+        f1_list.append(cross_validate(data_list, i).F1())
+        print ""
+
+    best_index = f1_list.index(max(f1_list))
+
+    print "Highest F1 score found when forest size was %d" % domain[best_index]
+    print "F1 score at peak: %f" % f1_list[best_index]
+
+    print f1_list
+
+    #eval = cross_validate(data_list, 45)
+    #print("The cross validation accuracy is: %f" % eval.accuracy())
+    #print("The cross validation precision is: %f" % eval.precision())
+    #print("The cross validation recall is: %f" % eval.recall())
+    #print("The cross validation F1 measure is: %f" % eval.F1())
+
+    #eval = cross_validate(indie_data_list, 45)
+    #print("The indie cross validation accuracy is: %f" % eval.accuracy())
+    #print("The indie cross validation precision is: %f" % eval.precision())
+    #print("The indie cross validation recall is: %f" % eval.recall())
+    #print("The indie cross validation F1 measure is: %f" % eval.F1())
+
