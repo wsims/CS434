@@ -86,7 +86,7 @@ def batch_train(w, window_list, window_label, learning_rate=6):
     w = w - learning_rate*gradient
     return w, gradient
 
-def predict(w, x, prob_threshold=0.5):
+def predict(w, x, prob_threshold=0.25):
     """Returns 0 if system predicts no hypo event
     1 if the system predicts a hypo event in the next 30 minutes.
     Inputs:
@@ -106,6 +106,27 @@ def predict(w, x, prob_threshold=0.5):
     if prob > prob_threshold:
         return_value = 1
     return return_value
+
+def predict_prob(w, x, prob_threshold=0.25):
+    """Returns 0 if system predicts no hypo event
+    1 if the system predicts a hypo event in the next 30 minutes.
+    Inputs:
+        w -- a numpy matrix object in the form of a column vector.  This
+            is the weight vector used to make predictions.
+        x -- a numpy matrix object in the form of a column vector.  This
+            contains all the feature data for one observation.
+        prob_threshold -- a floating point value.  This sets the probability
+            threshold which must be achieved for a positive result (i.e. 1)
+            to be returned.
+    Outputs:
+        return_value -- an integer value that is either 0 or 1, depending on what
+            the model predicts and the probably of a positive classification.
+    """
+    return_value = 0
+    prob = logistic.cdf(w.T*x).item(0)
+    if prob > prob_threshold:
+        return_value = 1
+    return return_value, prob    
 
 def test_accuracy(w, file, list_file):
     """Tests the model accuracy over an entire data set and returns
@@ -140,7 +161,7 @@ def cross_validate(x_list, y_list, w):
         x = x_list[i % 4] + x_list[(i + 1) % 4] + x_list[(i + 2) % 4]
         y = y_list[i % 4] + y_list[(i + 1) % 4] + y_list[(i + 2) % 4]
         x_resampled, y_resampled = SMOTE().fit_sample(x, y)
-        for j in range (50):
+        for j in range (5):
             w, gradient = batch_train(w, x_resampled, y_resampled)
             eval = test_accuracy(w, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
             if max_f1 < eval.F1():
@@ -150,7 +171,7 @@ def cross_validate(x_list, y_list, w):
         print("The training precision is: %f" % eval.precision())
         print("The training recall is: %f" % eval.recall())
         print("The training F1 measure is: %f" % eval.F1())
-    return best_model, gradient 
+    return best_model
 
 def individual_validate(x_list, y_list, w):
     best_model = 0
@@ -166,6 +187,20 @@ def individual_validate(x_list, y_list, w):
     print("The training precision is: %f" % eval.precision())
     print("The training recall is: %f" % eval.recall())
     print("The training F1 measure is: %f" % eval.F1())
+    return best_model
+
+def classify(w, testing_data, file="test.csv"):
+    f = open(file, "w")
+    pos_count = 0
+    for row in testing_data:
+        pred, prob = predict_prob(w, np.matrix(row).T)
+        if prob >= 0.25:
+            pos_count += 1
+        f.write("%f,%d\n" % (prob, pred))
+
+    f.close()
+    print "Classification file saved as '" + file + "'"
+    print "Found %d positives out of %d data points!" % (pos_count, len(testing_data))
 
 if __name__ == "__main__":
     count = 0
@@ -197,17 +232,22 @@ if __name__ == "__main__":
     y_list.append(window_label)
 
     w = np.matrix([0]*49).T
-    #cross_validate(x_list, y_list, w)
-    
+    w = cross_validate(x_list, y_list, w)
+    test_data = dp.get_test_data("test_data/general_test_instances.csv")
+    classify(w, test_data, file="general_pred1.csv")
+
     # Individual 1
     window_list, window_label = dp.get_window_data("train_data/Subject_2_part1.csv",
                                                    "train_data/list2_part1.csv")
-    individual_validate(window_list, window_label, w)
+    w = individual_validate(window_list, window_label, w)
+    test_data = dp.get_test_data("test_data/subject2_instances.csv")
+    classify(w, test_data, file="individual1_pred1.csv")
 
     # Individual 2
     window_list, window_label = dp.get_window_data("train_data/Subject_7_part1.csv",
                                                    "train_data/list_7_part1.csv")
-    individual_validate(window_list, window_label, w)
-
+    w = individual_validate(window_list, window_label, w)
+    test_data = dp.get_test_data("test_data/subject7_instances.csv")
+    classify(w, test_data, file="individual2_pred1.csv")
 
 
