@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
         test_data = dp.get_test_data("test_data/general_test_instances.csv")
 
-        classify(train_data, train_label, test_data, file="general_pred3.csv")
+        classify(train_data, train_label, test_data, file="preds/general_pred3.csv")
 
         # Individual 1
 
@@ -217,7 +217,7 @@ if __name__ == "__main__":
 
         test_data = dp.get_test_data("test_data/subject2_instances.csv")
 
-        classify(train_data, train_label, test_data, file="individual1_pred3.csv")
+        classify(train_data, train_label, test_data, file="preds/individual1_pred3.csv")
 
         # Individual 2
 
@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
         test_data = dp.get_test_data("test_data/subject7_instances.csv")
 
-        classify(train_data, train_label, test_data, file="individual2_pred3.csv")
+        classify(train_data, train_label, test_data, file="preds/individual2_pred3.csv")
 
 
 
