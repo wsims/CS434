@@ -1,6 +1,23 @@
+"""Data Processing Module
+
+Contains functionality to preprocess the data for use by
+the classifiers.
+
+"""
 import numpy as np
 
 def get_data(data_file):
+    """Read the data file and extract the raw feature data and class labels.
+
+    Inputs:
+        data_file (str): Name of the csv file to read.
+
+    Outputs:
+        data_list (2D Array): Each row contains an observation, and each
+            column contains data for a specific feature.
+        label_list (Python list): List of class labels (0 or 1).
+
+    """
     df = open(data_file, 'r')
     data_list = []
     label_list = []
@@ -18,6 +35,7 @@ def get_data(data_file):
     return data_list, label_list
 
 def get_test_data(data_file):
+    """Reads and reformats test data for use."""
     df = open(data_file, 'r')
     data_list = []
 
@@ -34,6 +52,7 @@ def get_test_data(data_file):
     return data_list
 
 def get_indices(index_file):
+    """Reads the index file and return it as a Python List"""
     index_f = open(index_file, 'r')
     index_list = []
 
@@ -45,6 +64,19 @@ def get_indices(index_file):
     return index_list
 
 def get_window_data(data_file, index_file):
+    """Reads the data and reformats it into 30 minute windows
+    for each observation.
+
+    Inputs:
+        data_file (str): Name of the file containing the feature data.
+        index_file (str): Name of the file containing the data indices.
+
+    Outputs:
+        window_list (2D Array): Array containing the 30 minute window data.
+        window_label (Python list): 1D array containing the class labels for
+            each window of data.
+
+    """
     raw_data, labels = get_data(data_file)
     indices = get_indices(index_file)
     sequence = 1

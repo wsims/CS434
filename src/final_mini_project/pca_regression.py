@@ -1,3 +1,20 @@
+"""
+PCA Regression Implementation
+
+Performs PCA dimension reduction on the data set, and then uses
+the result to run a linear regression.  Positive data is
+oversampled so that ~16% of the data have a positive label.
+A threshold of 0.25 is used to determine when a prediction is
+a positive prediction.  10 of the PCA features are used for
+classification.
+
+Usage:
+    $ python pca_regression.py
+
+Note: To run cross-validation, set the global 'MODE' equal to 'CROSS_VALIDATE'.
+    To produce the prediction csv files, set 'MODE' equal to 'CLASSIFY_TEST_DATA'.
+
+"""
 import numpy as np
 
 import os,sys,inspect
@@ -16,12 +33,26 @@ CLASSIFY_TEST_DATA = 1
 MODE = CLASSIFY_TEST_DATA
 
 def get_data_matrix(w_list):
+    """Adds a constant column and translates the data into a numpy matrix"""
     new_list = []
     for row in w_list:
         new_list.append([1.0] + row)
     return np.matrix(new_list)
 
 def get_training_data(w_list, w_label):
+    """Oversamples positive examples in the training data and returns 
+    the data and respective class labels.
+
+    Inputs:
+        w_list (2D Python List): Array where each row is a 30 minute window of data
+            and each column represents a feature.
+        w_label (Python List): List of class labels for each window of data.
+
+    Outputs:
+        X (2D Numpy Matrix): Data Matrix.
+        Y (Numpy Column Vector): Class label vector.
+
+    """
     sampled_W_list = []
     sampled_W_label = []
     sampled_W_list += w_list
@@ -47,12 +78,27 @@ def get_training_data(w_list, w_label):
 
 
 def get_principal_components(X):
+    """Returns a sorted list of eigenvalues and eigenvectors for a data matrix"""
     mean = pca.get_mean(X)
     cov_mat = pca.get_covariance(X, mean)
     eig_list = pca.get_eigen(cov_mat)
     return eig_list
 
 def pca_projection(X, eig_list, mean, features):
+    """Transforms the data by projecting it onto the set of eigenvectors.
+
+    Inputs:
+        X (2D Numpy Matrix): Data matrix to be projected onto the eigenvectors.
+        eig_list (Python list): List of eigenvalues and eigenvectors.  The first
+            section of each entry contains the eigenvalue.  The second section
+            contains the eigenvector.
+        mean (Numpy Column Vector): Average of all observations in the training data.
+        features (int): Number of eigenvectors to project each observation onto.
+
+    Outputs:
+        new_data_matrix (2D Numpy Matrix): Dimension reduced data matrix.
+
+    """
     new_data_list = []
     for row in X:
         new_row = []
@@ -63,6 +109,18 @@ def pca_projection(X, eig_list, mean, features):
     return np.matrix(new_data_list)
 
 def dimension_reduction(train_data, test_data, features=10):
+    """Performs dimension reduciton on both the training data and testing data.
+
+    Inputs:
+        train_data (2D Numpy Matrix): Training data in original feature space.
+        test_data (2D Numpy Matrix): Testing data in original feature space.
+        features (int): Number of features to reduce to.
+
+    Outputs:
+        X_pca (2D Numpy Matrix): Training data in reduced feature space.
+        X_pca_test (2D Numpy Matrix): Testing data in reduced feature space.
+
+    """
     mean = pca.get_mean(train_data)
 
     eig_list = get_principal_components(train_data)
@@ -77,23 +135,43 @@ def dimension_reduction(train_data, test_data, features=10):
 
 
 def regress(X, Y):
+    """Returns the linear regression weight vector"""
     return np.linalg.inv(X.T*X)*X.T*Y
 
 def prediction(X_pca_row, W):
-    #pca_obs = []
-    #for i in range(features):
-    #    proj = pca.get_projection_mag(X_i, eig_list[i][1].real, mean)
-    #    pca_obs.append(proj)
-    #pca_obs = np.matrix(pca_obs).T
+    """Returns a continuous class label prediction"""
     return np.inner(X_pca_row.T, W.T).item(0)
 
 def float_to_binary(pred):
+    """Converts continuous class label to binary value (0 or 1).
+
+    Inputs:
+        pred (float): Prediction percentage value.
+
+    Outputs:
+        prediction (int): Returns 0 if the classifier predicts a negative class label.
+            Returns 1 if a positive class label is predicted.
+
+    """
     value = 0
     if pred >= 0.25:
         value = 1
     return value
 
 def cross_validate(data_list, label_list, features):
+    """Cross validate the PCA regression over 4 data sets.
+
+    Inputs:
+        data_list (Python list): A list of 4 data arrays.
+        label_list (Python list): A list of 4 label arrays corresponding
+            to the 4 data arrays.
+        features (int): Number of features to project onto.
+
+    Outputs:
+        eval (PerformanceEval object): Class object to evaluate classifier
+            performance.
+
+    """
     eval = None
     for i in range(4):
         print "Validating set %d..." % i
@@ -115,6 +193,18 @@ def cross_validate(data_list, label_list, features):
     return eval
 
 def compute_accuracy(data, Y, W):
+    """Evaluate the performance of the PCA regression classifier on a labeled data set.
+
+    Inputs:
+        data (2D Numpy Matrix): Reduced feature data matrix.
+        Y (Numpy Column Vector): Class label vector.
+        W (Numpy Column Vector): Linear regression weight vector.
+
+    Outputs:
+        eval (PerformanceEval object): Class object to evaluate classifier
+            performance.
+
+    """
     eval = perf.PerformanceEval()
     for i, row in enumerate(data):
         eval.add_result(float_to_binary(prediction(row.T, W)),
@@ -122,6 +212,18 @@ def compute_accuracy(data, Y, W):
     return eval
 
 def classify(training_data, training_label, testing_data, features=10, file="test.csv"):
+    """Performs dimension reduction on both the training set and testing set,
+    performs a linear regression on the training data, and outputs predictions to
+    a csv file.
+
+    Inputs:
+        training_data (2D Numpy Matrix): The original feature space training data set.
+        training_label (Numpy Column Vector): Column vector containing class labels.
+        testing_data (2D Numpy Matrix): The original feature space testing data set.
+        features (int): Number of features to project onto.
+        file (str): name of the csv file where results are saved.
+
+    """
     train_data, train_label = get_training_data(training_data, training_label)
     test_data = get_data_matrix(testing_data)
 
@@ -228,17 +330,3 @@ if __name__ == "__main__":
 
         classify(train_data, train_label, test_data, file="preds/individual2_pred3.csv")
 
-
-
-    #X_test = get_data_matrix(w_list)
-    #Y_test = np.matrix(w_label).T
-
-    #X, Y = get_training_data(w_list, w_label)
-
-    #X_pca, X_pca_test = dimension_reduction(X, X_test)
-
-    #W = regress(X_pca, Y)
-
-    #eval = compute_accuracy(X_pca_test, Y_test, W)
-    #print eval.accuracy()
-    #print eval.F1()
