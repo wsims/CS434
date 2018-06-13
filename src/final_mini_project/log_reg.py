@@ -5,6 +5,7 @@ oversampled so that ~50% of the data have a positive label
 using the SMOTE technique. Cross validation was used
 to train the model and a threshold of 0.25 is used to 
 determine when a prediction is a positive prediction.
+ Utilizes an L2 regularization term of 10**-7.
 
 Note: The python module "imbalanced-learn"
 was utilized for SMOTE and can be installed with by running:
@@ -74,7 +75,7 @@ class PerformanceEval(object):
     def F1(self):
         return float(2*self.TP)/float(2*self.TP + self.FP + self.FN)
 
-def batch_train(w, window_list, window_label, learning_rate=6):
+def batch_train(w, window_list, window_label, learning_rate=0.05, lamb = 1):
     """Performs one iteration of gradient descent using the full
     training data set.
     Inputs:
@@ -99,10 +100,11 @@ def batch_train(w, window_list, window_label, learning_rate=6):
         y_hat = logistic.cdf(w.T*x).item(0)
         gradient = gradient + (y_hat - y)*x
 
+    gradient = gradient + lamb*w
     w = w - learning_rate*gradient
     return w, gradient
 
-def predict(w, x, prob_threshold=0.25):
+def predict(w, x, prob_threshold=0.50):
     """Returns 0 if system predicts no hypo event
     1 if the system predicts a hypo event in the next 30 minutes.
     Inputs:
@@ -128,7 +130,7 @@ def predict(w, x, prob_threshold=0.25):
         return_value = 1
     return return_value
 
-def predict_prob(w, x, prob_threshold=0.25):
+def predict_prob(w, x, prob_threshold=0.50):
     """Returns 0 if system predicts no hypo event
     1 if the system predicts a hypo event in the next 30 minutes.
     Inputs:
@@ -184,6 +186,7 @@ def cross_validate(x_list, y_list, w):
         best_model (PerformanceEval object): returns the model with the 
         highest F1 value during training.
     """
+    lamb=10.0**-7
     best_model = w
     max_f1 = 0
     for i in range(4):
@@ -191,8 +194,8 @@ def cross_validate(x_list, y_list, w):
         y = y_list[i % 4] + y_list[(i + 1) % 4] + y_list[(i + 2) % 4]
         #x_resampled, y_resampled = SMOTE().fit_sample(x, y)
         x_resampled, y_resampled = ADASYN().fit_sample(x, y)
-        for j in range (100):
-            w, gradient = batch_train(w, x_resampled, y_resampled)
+        for j in range (70):
+            w, gradient = batch_train(w, x_resampled, y_resampled, lamb)
             eval = test_accuracy(w, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
             if max_f1 < eval.F1() and eval.accuracy() > .5:
                 max_f1 = eval.F1()
@@ -216,15 +219,16 @@ def individual_validate(x_list, y_list, w):
         best_model (PerformanceEval object): returns the model with the 
         highest F1 value during training.
     """
+    lamb=10.0**-7
     best_model = w
     max_f1 = 0
     #x_resampled, y_resampled = SMOTE().fit_sample(x_list, y_list)
     x_resampled, y_resampled = ADASYN().fit_sample(x_list, y_list)
-    for j in range (100):
-        w, gradient = batch_train(w, x_resampled, y_resampled)
+    for j in range (70):
+        w, gradient = batch_train(w, x_resampled, y_resampled, lamb)
         eval = test_accuracy(w, x_list, y_list)
         if max_f1 < eval.F1() and eval.accuracy() > .5:
-            max_f1 = eval.F1()
+            max_f1 = eval.F1() 
             best_model = w
     eval = test_accuracy(best_model, x_list, x_list)
     print("The training accuracy is: %f" % eval.accuracy())
