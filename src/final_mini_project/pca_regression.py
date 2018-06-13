@@ -9,6 +9,12 @@ import data_process as dp
 import performance as perf
 from assignment_4 import pca
 
+CROSS_VALIDATE = 0
+CLASSIFY_TEST_DATA = 1
+
+#MODE = CROSS_VALIDATE
+MODE = CLASSIFY_TEST_DATA
+
 def get_data_matrix(w_list):
     new_list = []
     for row in w_list:
@@ -115,42 +121,114 @@ def compute_accuracy(data, Y, W):
                         int(Y.item(i)))
     return eval
 
+def classify(training_data, training_label, testing_data, features=10, file="test.csv"):
+    train_data, train_label = get_training_data(training_data, training_label)
+    test_data = get_data_matrix(testing_data)
+
+    train_pca, test_pca = dimension_reduction(train_data, test_data, features)
+
+    W = regress(train_pca, train_label)
+
+    f = open(file, "w")
+
+    pos_count = 0
+    for row in test_pca:
+        pred = prediction(row.T, W)
+        if pred >= 0.25:
+            pos_count += 1
+        f.write("%f,%d\n" % (pred, float_to_binary(pred)))
+
+    f.close()
+    print "Classification file saved as '" + file + "'"
+    print "Found %d positives out of %d data points!" % (pos_count, len(test_pca))
+
+
 if __name__ == "__main__":
 
-    data_list, label_list = [], []
+    if MODE == CROSS_VALIDATE:
+        data_list, label_list = [], []
 
-    w_list, w_label = dp.get_window_data("train_data/Subject_1.csv",
-                                         "train_data/list_1.csv")
-    data_list.append(w_list)
-    label_list.append(w_label)
+        w_list, w_label = dp.get_window_data("train_data/Subject_1.csv",
+                                             "train_data/list_1.csv")
+        data_list.append(w_list)
+        label_list.append(w_label)
 
-    w_list, w_label = dp.get_window_data("train_data/Subject_4.csv",
-                                         "train_data/list_4.csv")
-    data_list.append(w_list)
-    label_list.append(w_label)
+        w_list, w_label = dp.get_window_data("train_data/Subject_4.csv",
+                                             "train_data/list_4.csv")
+        data_list.append(w_list)
+        label_list.append(w_label)
 
-    w_list, w_label = dp.get_window_data("train_data/Subject_6.csv",
-                                         "train_data/list_6.csv")
-    data_list.append(w_list)
-    label_list.append(w_label)
+        w_list, w_label = dp.get_window_data("train_data/Subject_6.csv",
+                                             "train_data/list_6.csv")
+        data_list.append(w_list)
+        label_list.append(w_label)
 
-    w_list, w_label = dp.get_window_data("train_data/Subject_9.csv",
-                                         "train_data/list_9.csv")
-    data_list.append(w_list)
-    label_list.append(w_label)
+        w_list, w_label = dp.get_window_data("train_data/Subject_9.csv",
+                                             "train_data/list_9.csv")
+        data_list.append(w_list)
+        label_list.append(w_label)
 
-    f1_list = []
-    for i in range(1, 31):
-        print "Running test for %d features" % i
-        f1_list.append(cross_validate(data_list, label_list, i).F1())
-        print ""
+        f1_list = []
+        for i in range(1, 31):
+            print "Running test for %d features" % i
+            f1_list.append(cross_validate(data_list, label_list, i).F1())
+            print ""
 
-    best_index = f1_list.index(max(f1_list))
+        best_index = f1_list.index(max(f1_list))
 
-    print "Highest F1 score found when using %d features" % (best_index + 1)
-    print "F1 score at peak: %f" % f1_list[best_index]
+        print "Highest F1 score found when using %d features" % (best_index + 1)
+        print "F1 score at peak: %f" % f1_list[best_index]
 
-    print f1_list
+        print f1_list
+
+    elif MODE == CLASSIFY_TEST_DATA:
+        train_data, train_label = [], []
+
+        # General Population
+
+        w_list, w_label = dp.get_window_data("train_data/Subject_1.csv",
+                                             "train_data/list_1.csv")
+        train_data += w_list
+        train_label += w_label
+
+        w_list, w_label = dp.get_window_data("train_data/Subject_4.csv",
+                                             "train_data/list_4.csv")
+        train_data += w_list
+        train_label += w_label
+
+        w_list, w_label = dp.get_window_data("train_data/Subject_6.csv",
+                                             "train_data/list_6.csv")
+        train_data += w_list
+        train_label += w_label
+
+        w_list, w_label = dp.get_window_data("train_data/Subject_9.csv",
+                                             "train_data/list_9.csv")
+        train_data += w_list
+        train_label += w_label
+
+        test_data = dp.get_test_data("test_data/general_test_instances.csv")
+
+        classify(train_data, train_label, test_data, file="general_pred3.csv")
+
+        # Individual 1
+
+        train_data, train_label = dp.get_window_data("train_data/Subject_2_part1.csv",
+                                                     "train_data/list2_part1.csv")
+
+        test_data = dp.get_test_data("test_data/subject2_instances.csv")
+
+        classify(train_data, train_label, test_data, file="individual1_pred3.csv")
+
+        # Individual 2
+
+        train_data, train_label = dp.get_window_data("train_data/Subject_7_part1.csv",
+                                                     "train_data/list_7_part1.csv")
+
+        test_data = dp.get_test_data("test_data/subject7_instances.csv")
+
+        classify(train_data, train_label, test_data, file="individual2_pred3.csv")
+
+
 
     #X_test = get_data_matrix(w_list)
     #Y_test = np.matrix(w_label).T
@@ -164,4 +242,3 @@ if __name__ == "__main__":
     #eval = compute_accuracy(X_pca_test, Y_test, W)
     #print eval.accuracy()
     #print eval.F1()
-
