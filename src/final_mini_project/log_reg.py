@@ -1,8 +1,23 @@
+"""
+Logistic Regression Implementation
+Runs a logistic regression on the data which has been 
+oversampled so that ~50% of the data have a positive label
+using the SMOTE technique. Cross validation was used
+to train the model and a threshold of 0.25 is used to 
+determine when a prediction is a positive prediction.
+
+Note: The python module "imbalanced-learn"
+was utilized for SMOTE and can be installed with by running:
+$ pip install -U imbalanced-learn
+
+Usage:
+    $ python log_reg.py
+"""
 import numpy as np
 import random
 import math
 from scipy.stats import logistic
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE, ADASYN
 
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -12,6 +27,7 @@ sys.path.insert(0,parentdir)
 import data_process as dp
 
 class PerformanceEval(object):
+    """Class object used to evaluate classifier performance."""
 
     def __init__(self):
         self.TP = 0
@@ -102,6 +118,11 @@ def predict(w, x, prob_threshold=0.25):
             the model predicts.
     """
     return_value = 0
+    #val = (w.T*x).item(0)
+    #float(val)
+    #print val
+    #num = logistic.cdf(val)
+    #print num
     prob = logistic.cdf(w.T*x).item(0)
     if prob > prob_threshold:
         return_value = 1
@@ -138,10 +159,7 @@ def test_accuracy(w, file, list_file):
     Outputs:
         accuracy -- a floating point value between 0 and 1 indicating what
             percentage of observations were accurately predicted.
-    """
-    
-    #window_list, window_label = dp.get_window_data(file, list_file)
-                                                 
+    """                                                 
     count = 0
     correct = 0
     eval = PerformanceEval()
@@ -155,16 +173,29 @@ def test_accuracy(w, file, list_file):
     return eval
 
 def cross_validate(x_list, y_list, w):
-    best_model = 0
+    """Cross validate the Logistic regression over 4 data sets.
+    Inputs:
+        x_list (Python list): A list of 4 data arrays.
+        y_list (Python list): A list of 4 label arrays corresponding
+            to the 4 data arrays.
+        w -- a numpy matrix object in the form of a column vector.  This
+        is the weight vector used to make predictions.
+    Outputs:
+        best_model (PerformanceEval object): returns the model with the 
+        highest F1 value during training.
+    """
+    best_model = w
     max_f1 = 0
     for i in range(4):
         x = x_list[i % 4] + x_list[(i + 1) % 4] + x_list[(i + 2) % 4]
         y = y_list[i % 4] + y_list[(i + 1) % 4] + y_list[(i + 2) % 4]
-        x_resampled, y_resampled = SMOTE().fit_sample(x, y)
-        for j in range (5):
+        #x_resampled, y_resampled = SMOTE().fit_sample(x, y)
+        x_resampled, y_resampled = ADASYN().fit_sample(x, y)
+        for j in range (100):
             w, gradient = batch_train(w, x_resampled, y_resampled)
             eval = test_accuracy(w, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
-            if max_f1 < eval.F1():
+            if max_f1 < eval.F1() and eval.accuracy() > .5:
+                max_f1 = eval.F1()
                 best_model = w
         eval = test_accuracy(best_model, x_list[(i + 3) % 4], y_list[(i + 3) % 4])
         print("The training accuracy is: %f" % eval.accuracy())
@@ -174,13 +205,26 @@ def cross_validate(x_list, y_list, w):
     return best_model
 
 def individual_validate(x_list, y_list, w):
-    best_model = 0
+    """Cross validate the Logistic regression over 4 data sets.
+    Inputs:
+        x_list (Python list): A list of 4 data arrays.
+        y_list (Python list): A list of 4 label arrays corresponding
+            to the 4 data arrays.
+        w -- a numpy matrix object in the form of a column vector.  This
+        is the weight vector used to make predictions.
+    Outputs:
+        best_model (PerformanceEval object): returns the model with the 
+        highest F1 value during training.
+    """
+    best_model = w
     max_f1 = 0
-    x_resampled, y_resampled = SMOTE().fit_sample(x_list, y_list)
-    for j in range (50):
+    #x_resampled, y_resampled = SMOTE().fit_sample(x_list, y_list)
+    x_resampled, y_resampled = ADASYN().fit_sample(x_list, y_list)
+    for j in range (100):
         w, gradient = batch_train(w, x_resampled, y_resampled)
         eval = test_accuracy(w, x_list, y_list)
-        if max_f1 < eval.F1():
+        if max_f1 < eval.F1() and eval.accuracy() > .5:
+            max_f1 = eval.F1()
             best_model = w
     eval = test_accuracy(best_model, x_list, x_list)
     print("The training accuracy is: %f" % eval.accuracy())
@@ -190,6 +234,15 @@ def individual_validate(x_list, y_list, w):
     return best_model
 
 def classify(w, testing_data, file="test.csv"):
+    """Uses the trained model to classify the data from the test set and 
+    saves the results to a csv file.
+
+    Inputs:
+        w -- a numpy matrix object in the form of a column vector.  This
+        is the weight vector used to make predictions and the best model from training.
+        testing_data (2D Numpy Matrix): The original feature space testing data set.
+        file (str): name of the csv file where results are saved.
+    """
     f = open(file, "w")
     pos_count = 0
     for row in testing_data:
@@ -242,7 +295,7 @@ if __name__ == "__main__":
     w = individual_validate(window_list, window_label, w)
     test_data = dp.get_test_data("test_data/subject2_instances.csv")
     classify(w, test_data, file="individual1_pred1.csv")
-
+    
     # Individual 2
     window_list, window_label = dp.get_window_data("train_data/Subject_7_part1.csv",
                                                    "train_data/list_7_part1.csv")
