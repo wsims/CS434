@@ -16,7 +16,7 @@ CLASSIFY_TEST_DATA = 1
 #MODE = CROSS_VALIDATE
 MODE = CLASSIFY_TEST_DATA
 
-class RandomForest(object):
+class BaggedDT(object):
 
     def __init__(self, data, size):
         self.size = size
@@ -107,7 +107,7 @@ def cross_validate(data_list, forest_size):
     for i in range(4):
         print "Validating set %d..." % i
         data = data_list[i % 4] + data_list[(i + 1) % 4] + data_list[(i + 2) % 4]
-        forest = RandomForest(data, forest_size)
+        forest = BaggedDT(data, forest_size)
         if i == 0:
             eval = compute_accuracy(forest, data_list[(i + 3) % 4])
         else:
@@ -117,7 +117,7 @@ def cross_validate(data_list, forest_size):
 
 def classify(train_data, test_data, n, file="test.csv"):
     print "Building trees... (may take awhile)"
-    forest = RandomForest(train_data, n)
+    forest = BaggedDT(train_data, n)
 
     f = open(file, "w")
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         test_data = dp.get_test_data("test_data/general_test_instances.csv")
         test_data = dtree_test_data_trans(test_data)
 
-        classify(train_data, test_data, 71, file="general_pred2.csv")
+        classify(train_data, test_data, 71, file="preds/general_pred2.csv")
 
         # Individual 1
         train_data = []
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         test_data = dp.get_test_data("test_data/subject2_instances.csv")
         test_data = dtree_test_data_trans(test_data)
 
-        classify(train_data, test_data, 71, file="individual1_pred2.csv")
+        classify(train_data, test_data, 71, file="preds/individual1_pred2.csv")
 
         # Individual 2
         train_data = []
@@ -258,7 +258,7 @@ if __name__ == "__main__":
         test_data = dp.get_test_data("test_data/subject7_instances.csv")
         test_data = dtree_test_data_trans(test_data)
 
-        classify(train_data, test_data, 71, file="individual2_pred2.csv")
+        classify(train_data, test_data, 71, file="preds/individual2_pred2.csv")
 
     #eval = cross_validate(data_list, 45)
     #print("The cross validation accuracy is: %f" % eval.accuracy())
